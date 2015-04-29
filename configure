@@ -121,6 +121,8 @@ PIC_OBJC='$(PIC_OBJZ)'
 INSTALLTARGETS="install-shared install-static"
 UNINSTALLTARGETS="uninstall-shared uninstall-static"
 
+TEST="teststatic"
+
 # leave this script, optionally in a bad way
 leave()
 {
@@ -471,7 +473,6 @@ if test $shared -eq 0; then
   LDSHARED="$CC"
   LDSHAREDFLAGS=""
   ALL="static"
-  TEST="all teststatic"
   SHAREDLIB=""
   SHAREDLIBV=""
   SHAREDLIBM=""
@@ -481,7 +482,7 @@ if test $shared -eq 0; then
   echo Building static library $STATICLIB version $VER with $CC. | tee -a configure.log
 else
   ALL="static shared"
-  TEST="all teststatic testshared"
+  TEST="${TEST} testshared"
 fi
 
 echo >> configure.log
@@ -908,7 +909,6 @@ sed < $SRCDIR/Makefile.in "
 /^OBJC *=/s#=.*#= $OBJC#
 /^PIC_OBJC *=/s#=.*#= $PIC_OBJC#
 /^all: */s#:.*#: $ALL#
-/^test: */s#:.*#: $TEST#
 /^install-libs: */s#:.*#: $INSTALLTARGETS#
 /^uninstall-libs: */s#:.*#: $UNINSTALLTARGETS#
 /^ARCHDIR *=/s#=.*#=$ARCHDIR#
@@ -934,6 +934,20 @@ sed < $SRCDIR/$ARCHDIR/Makefile.in "
 /^SSE4FLAG *=/s#=.*#=$sse4flag#
 /^PCLMULFLAG *=/s#=.*#=$pclmulflag#
 " > $ARCHDIR/Makefile
+
+# Generate Makefile in test dir
+mkdir -p test
+TESTINCLUDES="-I$SRCDIR"
+if [ "$SRCDIR" != "$BUILDDIR" ]; then TESTINCLUDES="${TESTINCLUDES} -I$BUILDDIR"; fi
+sed < $SRCDIR/test/Makefile.in "
+/^CC *=/s#=.*#=$CC#
+/^CFLAGS *=/s#=.*#=$CFLAGS#
+/^EXE *=/s#=.*#=$EXE#
+/^oldtests: */s#:.*#: $TEST#
+/^INCLUDES *=/s#=.*#=$TESTINCLUDES#
+/^SRCDIR *=/s#=.*#=$SRCDIR/test#
+/^SRCTOP *=/s#=.*#=$SRCDIR#
+" > test/Makefile
 
 # create zlib.pc with the configure results
 sed < $SRCDIR/zlib.pc.in "
