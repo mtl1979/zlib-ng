@@ -400,7 +400,7 @@ void ZLIB_INTERNAL bi_windup(deflate_state *s);
                  25811* (s->window[i+2])) & s->hash_mask;\
     } while (0)
 #else
-#   define UPDATE_HASH(s, h, i) (h = (((h) << s->hash_shift) ^ (s->window[i + (MIN_MATCH-1)])) & s->hash_mask)
+#   define UPDATE_HASH(s, h, i) (h = ((h << s->hash_shift) ^ (s->window[i + (MIN_MATCH-1)])) & s->hash_mask)
 #endif
 
 #ifndef DEBUG
