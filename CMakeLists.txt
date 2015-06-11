@@ -45,6 +45,27 @@ endif (WITH_GZFILEOP)
 option(WITH_OPTIM "Build with optimisation" ON)
 option(WITH_NEW_STRATEGIES "Use new strategies" ON)
 
+if(MSVC)
+    # TODO
+else()
+    execute_process(COMMAND ${CMAKE_C_COMPILER} --version OUTPUT_VARIABLE COMPILER_VERSION)
+    if(NOT SSE2FLAG)
+        if("${COMPILER_VERSION}" MATCHES "gcc" OR "${COMPILER_VERSION}" MATCHES "clang")
+            set(SSE2FLAG "-msse2")
+        endif()
+    endif()
+    if(NOT SSE4FLAG)
+        if("${COMPILER_VERSION}" MATCHES "gcc" OR "${COMPILER_VERSION}" MATCHES "clang")
+            set(SSE4FLAG "-msse4")
+        endif()
+    endif()
+    if(NOT PCLMULFLAG)
+        if("${COMPILER_VERSION}" MATCHES "gcc" OR "${COMPILER_VERSION}" MATCHES "clang")
+            set(PCLMULFLAG "-mpclmul")
+        endif()
+    endif()
+endif()
+
 add_feature_info(ZLIB_COMPAT ZLIB_COMPAT "Provide a zlib-compatible API")
 add_feature_info(WITH_GZFILEOP WITH_GZFILEOP "Compile with support for gzFile-related functions")
 add_feature_info(WITH_OPTIM WITH_OPTIM "Build with optimisation")
@@ -136,6 +157,7 @@ else()
     #
     # not MSVC, so we need to check if we have the MS-style SSE etc. intrinsics
     #
+    set(CMAKE_REQUIRED_FLAGS "${SSE2FLAG}")
     check_c_source_compiles(
         "#include <immintrin.h>
         int main(void)
@@ -146,6 +168,8 @@ else()
         }"
         HAVE_SSE2_INTRIN
     )
+    # use the generic SSE4 enabler option to check for the SSE4.2 instruction we require:
+    set(CMAKE_REQUIRED_FLAGS "${SSE4FLAG}")
     check_c_source_compiles(
         "int main(void)
         {
@@ -155,16 +179,19 @@ else()
         }"
         HAVE_SSE42_INTRIN
     )
+    # the PCLMUL instruction we use also requires an SSE4.1 instruction check for both
+    set(CMAKE_REQUIRED_FLAGS "${SSE4FLAG} ${PCLMULFLAG}")
     check_c_source_compiles(
         "#include <immintrin.h>
+        #include <smmintrin.h>
         #include <wmmintrin.h>
         int main(void)
         {
             __m128i a = _mm_setzero_si128();
             __m128i b = _mm_setzero_si128();
             __m128i c = _mm_clmulepi64_si128(a, b, 0x10);
-            (void)c;
-            return 0;
+            int d = _mm_extract_epi32(c, 2);
+            return d;
         }"
         HAVE_PCLMULQDQ_INTRIN
     )
@@ -182,13 +209,13 @@ set(ARCHDIR "arch/generic")
 if(${ARCH} MATCHES "x86_64" OR ${ARCH} MATCHES "AMD64")
     set(ARCHDIR "arch/x86")
     add_definitions(-DX86_64 -DX86_NOCHECK_SSE2 -DUNALIGNED_OK -DUNROLL_LESS -DX86_CPUID)
-    add_feature_info(SSE2 1 "Use the SSE2 instruction set")
+    add_feature_info(SSE2 1 "Use the SSE2 instruction set, using \"${SSE2FLAG}\"")
 else()
     string(FIND ${ARCH} "arm" ARMPOS)
     if(${ARMPOS} LESS 0)
         set(ARCHDIR "arch/x86")
         add_definitions(-DX86 -DUNALIGNED_OK -DUNROLL_LESS -DX86_CPUID)
-        add_feature_info(SSE2 1 "Support the SSE2 instruction set")
+        add_feature_info(SSE2 1 "Support the SSE2 instruction set, using \"${SSE2FLAG}\"")
     else()
         set(ARCHDIR "arch/arm")
         add_definitions(-DUNALIGNED_OK -DUNROLL_LESS)
@@ -199,7 +226,7 @@ if(WITH_OPTIM)
     if(HAVE_SSE42_INTRIN)
         add_definitions(-DX86_SSE4_2_CRC_HASH)
         set(ZLIB_ARCH_SRCS ${ZLIB_ARCH_SRCS} ${ARCHDIR}/insert_string_sse.c)
-        add_feature_info(SSE4_CRC 1 "Support CRC hash generation using the SSE4.2 instruction set")
+        add_feature_info(SSE4_CRC 1 "Support CRC hash generation using the SSE4.2 instruction set, using \"${SSE4FLAG}\"")
         add_intrinsics_option(${SSE4FLAG})
         if(WITH_NEW_STRATEGIES)
             add_definitions(-DX86_QUICK_STRATEGY)
@@ -210,7 +237,9 @@ if(WITH_OPTIM)
     if(HAVE_SSE2_INTRIN)
         add_definitions(-DX86_SSE2_FILL_WINDOW)
         set(ZLIB_ARCH_SRCS ${ZLIB_ARCH_SRCS} ${ARCHDIR}/fill_window_sse.c)
-        add_intrinsics_option(${SSE2FLAG})
+        if(NOT ${ARCH} MATCHES "x86_64")
+            add_intrinsics_option(${SSE2FLAG})
+        endif()
     endif()
     if(HAVE_PCLMULQDQ_INTRIN)
         add_definitions(-DX86_PCLMULQDQ_CRC)
