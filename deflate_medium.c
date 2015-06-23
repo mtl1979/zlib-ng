@@ -68,17 +68,18 @@ static void insert_match(deflate_state *s, struct match match) {
             }
         }
 #else
-        if (likely(match.match_length == 1)) {
-            match.strstart++;
-            match.match_length = 0;
-        }else{
-            match.strstart++;
-            match.match_length--;
+        match.strstart++;
+        match.match_length--;
+        if (match.match_length > 0) {
             if (match.strstart >= match.orgstart) {
-                bulk_insert_str(s, match.strstart, match.match_length);
+                if (match.strstart + match.match_length - 1 >= match.orgstart) {
+                    bulk_insert_str(s, match.strstart, match.match_length);
+                } else {
+                    bulk_insert_str(s, match.strstart, match.orgstart - match.strstart + 1);
+                }
+                match.strstart += match.match_length;
+                match.match_length = 0;
             }
-            match.strstart += match.match_length;
-            match.match_length = 0;
         }
 #endif
         return;
@@ -102,7 +103,11 @@ static void insert_match(deflate_state *s, struct match match) {
         } while (--match.match_length != 0);
 #else
         if (likely(match.strstart >= match.orgstart)) {
-            bulk_insert_str(s, match.strstart, match.match_length);
+            if (likely(match.strstart + match.match_length - 1 >= match.orgstart)) {
+                bulk_insert_str(s, match.strstart, match.match_length);
+            } else {
+                bulk_insert_str(s, match.strstart, match.orgstart - match.strstart + 1);
+            }
         }
         match.strstart += match.match_length;
         match.match_length = 0;
