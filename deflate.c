@@ -122,16 +122,22 @@ static const config configuration_table[10] = {
 /* 3 */ {4,    6, 32,   32, deflate_fast},
 
 #ifdef MEDIUM_STRATEGY
+#  ifdef NOT_TWEAK_COMPILER
 /* 4 */ {4,    4, 16,   16, deflate_medium},  /* lazy matches */
 /* 5 */ {8,   16, 32,   32, deflate_medium},
 /* 6 */ {8,   16, 128, 128, deflate_medium},
+#  else
+/* 4 */ {4,    8, 16,   16, deflate_medium},  /* lazy matches */
+/* 5 */ {8,   16, 64,  128, deflate_medium},
+/* 6 */ {8,   16, 128, 128, deflate_slow},
+#  endif /* NOT_TWEAK_COMPILER */
 #else
 /* 4 */ {4,    4, 16,   16, deflate_slow},  /* lazy matches */
 /* 5 */ {8,   16, 32,   32, deflate_slow},
 /* 6 */ {8,   16, 128, 128, deflate_slow},
 #endif
 
-/* 7 */ {8,   32, 128, 256, deflate_slow},
+/* 7 */ {8,   32, 128,  256, deflate_slow},
 /* 8 */ {32, 128, 258, 1024, deflate_slow},
 /* 9 */ {32, 258, 258, 4096, deflate_slow}}; /* max compression */
 
@@ -645,9 +651,9 @@ int ZEXPORT deflate(z_stream *strm, int flush) {
 
             if (s->strategy >= Z_HUFFMAN_ONLY || s->level < 2)
                 level_flags = 0;
-            else if (s->level < 6)
+            else if (s->level < TRIGGER_LEVEL)
                 level_flags = 1;
-            else if (s->level == 6)
+            else if (s->level == TRIGGER_LEVEL)
                 level_flags = 2;
             else
                 level_flags = 3;
