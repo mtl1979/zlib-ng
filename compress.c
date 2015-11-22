@@ -1,5 +1,5 @@
 /* compress.c -- compress a memory buffer
- * Copyright (C) 1995-2005, 2014 Jean-loup Gailly, Mark Adler
+ * Copyright (C) 1995-2005, 2014 Jean-loup Gailly, Mark Adler.
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
@@ -66,7 +66,7 @@ int ZEXPORT compress(unsigned char *dest, size_t *destLen, const unsigned char *
 }
 
 /* ===========================================================================
-     If the default memLevel or windowBits for deflateInit() is changed, then
+   If the default memLevel or windowBits for deflateInit() is changed, then
    this function needs to be updated.
  */
 size_t ZEXPORT compressBound(size_t sourceLen) {

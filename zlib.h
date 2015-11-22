@@ -91,23 +91,23 @@ struct internal_state;
 
 typedef struct z_stream_s {
     const unsigned char *next_in;   /* next input byte */
-    unsigned int        avail_in;   /* number of bytes available at next_in */
+    uint32_t            avail_in;   /* number of bytes available at next_in */
     size_t              total_in;   /* total number of input bytes read so far */
 
     unsigned char    *next_out;     /* next output byte should be put there */
-    unsigned int     avail_out;     /* remaining free space at next_out */
+    uint32_t         avail_out;     /* remaining free space at next_out */
     size_t           total_out;     /* total number of bytes output so far */
 
-    const char *msg;                /* last error message, NULL if no error */
-    struct internal_state *state;   /* not visible by applications */
+    const char            *msg;       /* last error message, NULL if no error */
+    struct internal_state *state;     /* not visible by applications */
 
-    alloc_func zalloc;              /* used to allocate the internal state */
-    free_func  zfree;               /* used to free the internal state */
-    void      *opaque;              /* private data object passed to zalloc and zfree */
+    alloc_func            zalloc;     /* used to allocate the internal state */
+    free_func             zfree;      /* used to free the internal state */
+    void                  *opaque;    /* private data object passed to zalloc and zfree */
 
-    int     data_type;              /* best guess about the data type: binary or text */
-    uint32_t   adler;               /* adler32 value of the uncompressed data */
-    unsigned long   reserved;               /* reserved for future use */
+    int                   data_type;  /* best guess about the data type: binary or text */
+    uint32_t              adler;      /* adler32 value of the uncompressed data */
+    unsigned long         reserved;   /* reserved for future use */
 } z_stream;
 
 typedef z_stream *z_streamp;  // Obsolete type, retained for compatability only
@@ -117,19 +117,19 @@ typedef z_stream *z_streamp;  // Obsolete type, retained for compatability only
   for more details on the meanings of these fields.
 */
 typedef struct gz_header_s {
-    int     text;               /* true if compressed data believed to be text */
-    unsigned long   time;               /* modification time */
-    int     xflags;             /* extra flags (not used when writing a gzip file) */
-    int     os;                 /* operating system */
+    int             text;       /* true if compressed data believed to be text */
+    unsigned long   time;       /* modification time */
+    int             xflags;     /* extra flags (not used when writing a gzip file) */
+    int             os;         /* operating system */
     unsigned char   *extra;     /* pointer to extra field or Z_NULL if none */
-    unsigned int    extra_len;          /* extra field length (valid if extra != Z_NULL) */
-    unsigned int    extra_max;          /* space at extra (only when reading header) */
+    unsigned int    extra_len;  /* extra field length (valid if extra != Z_NULL) */
+    unsigned int    extra_max;  /* space at extra (only when reading header) */
     unsigned char   *name;      /* pointer to zero-terminated file name or Z_NULL */
-    unsigned int    name_max;           /* space at name (only when reading header) */
+    unsigned int    name_max;   /* space at name (only when reading header) */
     unsigned char   *comment;   /* pointer to zero-terminated comment or Z_NULL */
-    unsigned int    comm_max;           /* space at comment (only when reading header) */
-    int     hcrc;               /* true if there was or will be a header crc */
-    int     done;               /* true when done reading gzip header (not used when writing a gzip file) */
+    unsigned int    comm_max;   /* space at comment (only when reading header) */
+    int             hcrc;       /* true if there was or will be a header crc */
+    int             done;       /* true when done reading gzip header (not used when writing a gzip file) */
 } gz_header;
 
 typedef gz_header *gz_headerp;
@@ -591,7 +591,7 @@ ZEXTERN int ZEXPORT deflateInit2 (z_stream *strm,
 
 ZEXTERN int ZEXPORT deflateSetDictionary(z_stream *strm,
                                              const unsigned char *dictionary,
-                                             unsigned int  dictLength);
+                                             unsigned int dictLength);
 /*
      Initializes the compression dictionary from the given byte sequence
    without producing any compressed output.  When using the zlib format, this
@@ -721,7 +721,7 @@ ZEXTERN unsigned long ZEXPORT deflateBound(z_stream *strm, unsigned long sourceL
    than Z_FINISH or Z_NO_FLUSH are used.
 */
 
-ZEXTERN int ZEXPORT deflatePending(z_stream *strm, unsigned *pending, int *bits);
+ZEXTERN int ZEXPORT deflatePending(z_stream *strm, uint32_t *pending, int *bits);
 /*
      deflatePending() returns the number of bytes and bits of output that have
    been generated, but not yet provided in the available output.  The bytes not
@@ -953,7 +953,7 @@ ZEXTERN long ZEXPORT inflateMark(z_stream *strm);
    location in the input stream can be determined from avail_in and data_type
    as noted in the description for the Z_BLOCK flush parameter for inflate.
 
-     inflateMark returns the value noted above or -65536 if the provided
+     inflateMark returns the value noted above or -1 << 16 if the provided
    source stream state was inconsistent.
 */
 
@@ -1017,8 +1017,8 @@ ZEXTERN int ZEXPORT inflateBackInit (z_stream *strm, int windowBits, unsigned ch
    the version of the header file.
 */
 
-typedef unsigned (*in_func) (void *, const unsigned char * *);
-typedef int (*out_func) (void *, unsigned char *, unsigned);
+typedef uint32_t (*in_func) (void *, const unsigned char * *);
+typedef int (*out_func) (void *, unsigned char *, uint32_t);
 
 ZEXTERN int ZEXPORT inflateBack(z_stream *strm, in_func in, void *in_desc, out_func out, void *out_desc);
 /*
@@ -1553,7 +1553,7 @@ ZEXTERN void ZEXPORT gzclearerr(gzFile file);
    library.
 */
 
-ZEXTERN uint32_t ZEXPORT adler32(uint32_t adler, const unsigned char *buf, unsigned int len);
+ZEXTERN uint32_t ZEXPORT adler32(uint32_t adler, const unsigned char *buf, uint32_t len);
 /*
      Update a running Adler-32 checksum with the bytes buf[0..len-1] and
    return the updated checksum.  If buf is Z_NULL, this function returns the
@@ -1583,7 +1583,7 @@ ZEXTERN uint32_t ZEXPORT adler32_combine(uint32_t adler1, uint32_t adler2, z_off
    negative, the result has no meaning or utility.
 */
 
-ZEXTERN uint32_t ZEXPORT crc32(uint32_t crc, const unsigned char *buf, unsigned int len);
+ZEXTERN uint32_t ZEXPORT crc32(uint32_t crc, const unsigned char *buf, z_off64_t len);
 /*
      Update a running CRC-32 with the bytes buf[0..len-1] and return the
    updated CRC-32.  If buf is Z_NULL, this function returns the required
@@ -1601,7 +1601,7 @@ ZEXTERN uint32_t ZEXPORT crc32(uint32_t crc, const unsigned char *buf, unsigned 
 */
 
 /*
-ZEXTERN uint32_t ZEXPORT crc32_combine(uint32_t crc1, uint32_t crc2, z_off_t len2);
+ZEXTERN uint32_t ZEXPORT crc32_combine(uint32_t crc1, uint32_t crc2, z_off64_t len2);
 
      Combine two CRC-32 check values into one.  For two sequences of bytes,
    seq1 and seq2 with lengths len1 and len2, CRC-32 check values were
@@ -1707,15 +1707,15 @@ ZEXTERN int ZEXPORT gzgetc_(gzFile file);  /* backward compatibility */
 
 
 /* undocumented functions */
-ZEXTERN const char * ZEXPORT zError(int);
-ZEXTERN int ZEXPORT inflateSyncPoint(z_stream *);
-ZEXTERN const uint32_t * ZEXPORT get_crc_table(void);
-ZEXTERN int ZEXPORT inflateUndermine(z_stream *, int);
-ZEXTERN int ZEXPORT inflateResetKeep(z_stream *);
-ZEXTERN int ZEXPORT deflateResetKeep(z_stream *);
+ZEXTERN const char     * ZEXPORT zError           (int);
+ZEXTERN int              ZEXPORT inflateSyncPoint (z_stream *);
+ZEXTERN const uint32_t * ZEXPORT get_crc_table    (void);
+ZEXTERN int              ZEXPORT inflateUndermine (z_stream *, int);
+ZEXTERN int              ZEXPORT inflateResetKeep (z_stream *);
+ZEXTERN int              ZEXPORT deflateResetKeep (z_stream *);
 
 #ifdef WITH_GZFILEOP
-# if (defined(_WIN32) || defined(__CYGWIN__) || defined(__MINGW__))
+# if (defined(WIN32) || defined(__CYGWIN__) || defined(__MINGW__))
     ZEXTERN gzFile ZEXPORT gzopen_w(const wchar_t *path, const char *mode);
 # endif
 ZEXTERN int ZEXPORTVA gzvprintf(gzFile file, const char *format, va_list va);

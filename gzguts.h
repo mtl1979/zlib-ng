@@ -27,11 +27,11 @@
 #include <fcntl.h>
 #include "zlib.h"
 
-#ifdef _WIN32
+#ifdef WIN32
 #  include <stddef.h>
 #endif
 
-#if defined(_MSC_VER) || defined(_WIN32)
+#if defined(_MSC_VER) || defined(WIN32)
 #  include <io.h>
 #endif
 
@@ -61,11 +61,6 @@
 #if defined(_MSC_VER) && _MSC_VER < 1900
 #  define snprintf _snprintf
 #endif
-
-#ifndef local
-#  define local static
-#endif
-/* compile with -Dlocal if your debugger can't find static symbols */
 
 /* get errno and strerror definition */
 #ifndef NO_STRERROR

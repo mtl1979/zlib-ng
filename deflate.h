@@ -87,8 +87,8 @@ typedef struct ct_data_s {
 typedef struct static_tree_desc_s  static_tree_desc;
 
 typedef struct tree_desc_s {
-    ct_data *dyn_tree;           /* the dynamic tree */
-    int     max_code;            /* largest code with non zero frequency */
+    ct_data                *dyn_tree;  /* the dynamic tree */
+    int                    max_code;   /* largest code with non zero frequency */
     const static_tree_desc *stat_desc; /* the corresponding static tree */
 } tree_desc;
 
@@ -110,7 +110,7 @@ typedef struct internal_state {
     gz_headerp     gzhead;           /* gzip header information to write */
     unsigned int   gzindex;          /* where in extra, name, or comment */
     unsigned char  method;           /* can only be DEFLATED */
-    int   last_flush;                /* value of flush param for previous deflate call */
+    int            last_flush;       /* value of flush param for previous deflate call */
 
 #ifdef X86_PCLMULQDQ_CRC
     unsigned ALIGNED_(16) crc0[4 * 5];
@@ -118,9 +118,9 @@ typedef struct internal_state {
 
                 /* used by deflate.c: */
 
-    unsigned int  w_size;        /* LZ77 window size (32K by default) */
-    unsigned int  w_bits;        /* log2(w_size)  (8..16) */
-    unsigned int  w_mask;        /* w_size - 1 */
+    unsigned int  w_size;            /* LZ77 window size (32K by default) */
+    unsigned int  w_bits;            /* log2(w_size)  (8..16) */
+    unsigned int  w_mask;            /* w_size - 1 */
 
     unsigned char *window;
     /* Sliding window. Input bytes are read into the second half of the window,
@@ -145,10 +145,10 @@ typedef struct internal_state {
 
     Pos *head; /* Heads of the hash chains or NIL. */
 
-    unsigned int  ins_h;          /* hash index of string to be inserted */
-    unsigned int  hash_size;      /* number of elements in hash table */
-    unsigned int  hash_bits;      /* log2(hash_size) */
-    unsigned int  hash_mask;      /* hash_size-1 */
+    unsigned int  ins_h;             /* hash index of string to be inserted */
+    unsigned int  hash_size;         /* number of elements in hash table */
+    unsigned int  hash_bits;         /* log2(hash_size) */
+    unsigned int  hash_mask;         /* hash_size-1 */
 
     unsigned int  hash_shift;
     /* Number of bits by which ins_h must be shifted at each input
@@ -162,12 +162,12 @@ typedef struct internal_state {
      * negative when the window is moved backwards.
      */
 
-    unsigned int match_length;    /* length of best match */
-    IPos         prev_match;      /* previous match */
-    int          match_available; /* set if previous match exists */
-    unsigned int strstart;        /* start of string to insert */
-    unsigned int match_start;     /* start of matching string */
-    unsigned int lookahead;       /* number of valid bytes ahead in window */
+    unsigned int match_length;       /* length of best match */
+    IPos         prev_match;         /* previous match */
+    int          match_available;    /* set if previous match exists */
+    unsigned int strstart;           /* start of string to insert */
+    unsigned int match_start;        /* start of matching string */
+    unsigned int lookahead;          /* number of valid bytes ahead in window */
 
     unsigned int prev_length;
     /* Length of the best match at previous step. Matches not greater than this
@@ -223,7 +223,7 @@ typedef struct internal_state {
     /* Depth of each subtree used as tie breaker for trees of equal frequency
      */
 
-    unsigned char *l_buf;          /* buffer for literals or lengths */
+    unsigned char *l_buf;       /* buffer for literals or lengths */
 
     unsigned int  lit_bufsize;
     /* Size of match buffer for literals/lengths.  There are 4 reasons for
@@ -245,7 +245,7 @@ typedef struct internal_state {
      *   - I can't count above 4
      */
 
-    unsigned int last_lit;      /* running index in l_buf */
+    unsigned int last_lit;        /* running index in l_buf */
 
     uint16_t *d_buf;
     /* Buffer for distances. To simplify the code, d_buf and l_buf have
@@ -253,10 +253,10 @@ typedef struct internal_state {
      * array would be necessary.
      */
 
-    unsigned long opt_len;      /* bit length of current block with optimal trees */
-    unsigned long static_len;   /* bit length of current block with static trees */
-    unsigned int matches;       /* number of string matches in current block */
-    unsigned int insert;        /* bytes at end of window left to insert */
+    unsigned long opt_len;        /* bit length of current block with optimal trees */
+    unsigned long static_len;     /* bit length of current block with static trees */
+    unsigned int matches;         /* number of string matches in current block */
+    unsigned int insert;          /* bytes at end of window left to insert */
 
 #ifdef DEBUG
     unsigned long compressed_len; /* total bit length of compressed file mod 2^32 */

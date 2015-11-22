@@ -36,8 +36,8 @@ void flush_pending(z_stream *strm);
 extern Pos insert_string_sse(deflate_state *const s, const Pos str, unsigned int count);
 #endif
 
-local inline Pos insert_string_c(deflate_state *const s, const Pos str, unsigned int count) {
-    Pos ret;
+static inline Pos insert_string_c(deflate_state *const s, const Pos str, unsigned int count) {
+    Pos ret = 0;
     unsigned int idx;
 
     for (idx = 0; idx < count; idx++) {
@@ -48,7 +48,7 @@ local inline Pos insert_string_c(deflate_state *const s, const Pos str, unsigned
     return ret;
 }
 
-local inline Pos insert_string(deflate_state *const s, const Pos str) {
+static inline Pos insert_string(deflate_state *const s, const Pos str) {
 #ifdef X86_SSE4_2_CRC_HASH
     if (x86_cpu_has_sse42)
         return insert_string_sse(s, str, 1);
@@ -57,7 +57,7 @@ local inline Pos insert_string(deflate_state *const s, const Pos str) {
 }
 
 #ifndef NOT_TWEAK_COMPILER
-local inline void bulk_insert_str(deflate_state *const s, Pos startpos, unsigned int count) {
+static inline void bulk_insert_str(deflate_state *const s, Pos startpos, unsigned int count) {
 # ifdef X86_SSE4_2_CRC_HASH
     if (x86_cpu_has_sse42) {
         insert_string_sse(s, startpos, count);
