@@ -725,7 +725,7 @@ int ZEXPORT deflate(z_stream *strm, int flush) {
     }
     if (s->status == COMMENT_STATE) {
         if (s->gzhead->comment != Z_NULL) {
-            unsigned int beg = s->pending;  /* start of bytes to update crc */
+            uint32_t beg = s->pending;  /* start of bytes to update crc */
             int val;
 
             do {
