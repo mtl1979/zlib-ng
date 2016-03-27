@@ -131,9 +131,9 @@ static const config configuration_table[10] = {
 /* 6 */ {8,   16, 128, 128, deflate_slow},
 #  endif /* NOT_TWEAK_COMPILER */
 #else
-/* 4 */ {4,    4, 16,   16, deflate_slow},  /* lazy matches */
-/* 5 */ {8,   16, 32,   32, deflate_slow},
-/* 6 */ {8,   16, 128, 128, deflate_slow},
+/* 4 */ {4,   12, 32,   32, deflate_slow},  /* lazy matches */
+/* 5 */ {8,   16, 48,   64, deflate_slow},
+/* 6 */ {8,   32, 128, 128, deflate_slow},
 #endif
 
 /* 7 */ {8,   32, 128,  256, deflate_slow},
@@ -318,7 +318,7 @@ int ZEXPORT deflateSetDictionary(z_stream *strm, const unsigned char *dictionary
     while (s->lookahead >= MIN_MATCH) {
         str = s->strstart;
         n = s->lookahead - (MIN_MATCH-1);
-        bulk_insert_str(s, str, n);
+        insert_string(s, str, n);
         s->strstart = str + n;
         s->lookahead = MIN_MATCH-1;
         fill_window(s);
@@ -1094,7 +1094,11 @@ void fill_window_c(deflate_state *s) {
          * move the upper half to the lower one to make room in the upper half.
          */
         if (s->strstart >= wsize+MAX_DIST(s)) {
-            memcpy(s->window, s->window+wsize, (unsigned)wsize);
+#ifndef NOT_TWEAK_COMPILER
+            unsigned int i;
+#endif
+
+            memcpy(s->window, s->window+wsize, wsize);
             s->match_start -= wsize;
             s->strstart    -= wsize; /* we now have strstart >= MAX_DIST */
             s->block_start -= (long) wsize;
@@ -1181,24 +1185,31 @@ void fill_window_c(deflate_state *s) {
             unsigned int str = s->strstart - s->insert;
             s->ins_h = s->window[str];
 #ifndef NOT_TWEAK_COMPILER
-            if (str >= 1)
-                bulk_insert_str(s, str + 2 - MIN_MATCH, MIN_MATCH - 2);
-            if (s->insert > 0) {
+            {
                 unsigned int insert_cnt = s->insert;
+                unsigned int slen;
                 if (unlikely(s->lookahead < MIN_MATCH))
                     insert_cnt += s->lookahead - MIN_MATCH;
-                bulk_insert_str(s, str, insert_cnt);
-                str += insert_cnt;
-                s->insert -= insert_cnt;
+                slen = insert_cnt;
+                if (str >= (MIN_MATCH - 2))
+                {
+                    str += 2 - MIN_MATCH;
+                    insert_cnt += MIN_MATCH - 2;
+                }
+                if (insert_cnt > 0)
+                {
+                    insert_string(s, str, insert_cnt);
+                    s->insert -= slen;
+                }
             }
 #else
             if (str >= 1)
-                insert_string(s, str + 2 - MIN_MATCH);
+                insert_string(s, str + 2 - MIN_MATCH, 1);
 #if MIN_MATCH != 3
 #warning    Call insert_string() MIN_MATCH-3 more times
 #endif
             while (s->insert) {
-                insert_string(s, str);
+                insert_string(s, str, 1);
                 str++;
                 s->insert--;
                 if (s->lookahead + s->insert < MIN_MATCH)

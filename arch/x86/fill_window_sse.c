@@ -109,24 +109,31 @@ ZLIB_INTERNAL void fill_window_sse(deflate_state *s) {
             unsigned int str = s->strstart - s->insert;
             s->ins_h = s->window[str];
 #ifndef NOT_TWEAK_COMPILER
-            if (str >= 1)
-                bulk_insert_str(s, str + 2 - MIN_MATCH, MIN_MATCH - 2);
-            if (s->insert > 0) {
+            {
                 unsigned int insert_cnt = s->insert;
+                unsigned int slen;
                 if (unlikely(s->lookahead < MIN_MATCH))
                     insert_cnt += s->lookahead - MIN_MATCH;
-                bulk_insert_str(s, str, insert_cnt);
-                str += insert_cnt;
-                s->insert -= insert_cnt;
+                slen = insert_cnt;
+                if (str >= (MIN_MATCH - 2))
+                {
+                    str += 2 - MIN_MATCH;
+                    insert_cnt += MIN_MATCH - 2;
+                }
+                if (insert_cnt > 0)
+                {
+                    insert_string(s, str, insert_cnt);
+                    s->insert -= slen;
+                }
             }
 #else
             if (str >= 1)
-                insert_string(s, str + 2 - MIN_MATCH);
+                insert_string(s, str + 2 - MIN_MATCH, 1);
 #if MIN_MATCH != 3
 #warning    Call insert_string() MIN_MATCH-3 more times
 #endif
             while (s->insert) {
-                insert_string(s, str);
+                insert_string(s, str, 1);
                 str++;
                 s->insert--;
                 if (s->lookahead + s->insert < MIN_MATCH)
