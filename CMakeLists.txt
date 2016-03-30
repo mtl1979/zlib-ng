@@ -263,7 +263,7 @@ else()
 endif()
 
 #
-# Enable deflate_medium at level 4-6
+# Enable deflate_medium at level 4-5
 #
 if(WITH_NEW_STRATEGIES)
     add_definitions(-DMEDIUM_STRATEGY)

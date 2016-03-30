@@ -674,7 +674,7 @@ else
     HAVE_PCLMULQDQ_INTRIN=0
 fi
 
-# Enable deflate_medium at level 4-6
+# Enable deflate_medium at level 4-5
 if test $without_new_strategies -eq 0; then
     CFLAGS="${CFLAGS} -DMEDIUM_STRATEGY"
     SFLAGS="${SFLAGS} -DMEDIUM_STRATEGY"
