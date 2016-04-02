@@ -34,6 +34,10 @@
 
 ZLIB_INTERNAL uint32_t crc32_generic(uint32_t, const unsigned char *, size_t);
 
+#ifdef __ARM_FEATURE_CRC32
+extern uint32_t crc32_acle(uint32_t, const unsigned char *, z_off64_t);
+#endif
+
 #if BYTE_ORDER == LITTLE_ENDIAN
 ZLIB_INTERNAL uint32_t crc32_little(uint32_t, const unsigned char *, size_t);
 #elif BYTE_ORDER == BIG_ENDIAN
@@ -186,7 +190,11 @@ uint32_t ZEXPORT crc32_z(uint32_t crc, const unsigned char *buf, size_t len) {
 
     if (sizeof(void *) == sizeof(ptrdiff_t)) {
 #if BYTE_ORDER == LITTLE_ENDIAN
+#  if __ARM_FEATURE_CRC32
+        return crc32_acle(crc, buf, len);
+#  else
         return crc32_little(crc, buf, len);
+#  endif
 #elif BYTE_ORDER == BIG_ENDIAN
         return crc32_big(crc, buf, len);
 #endif
