@@ -83,7 +83,9 @@ ZLIB_INTERNAL void flush_pending  (z_stream *strm);
 ZLIB_INTERNAL int read_buf        (z_stream *strm, unsigned char *buf, unsigned size);
 
 extern void crc_reset(deflate_state *const s);
+#ifdef X86_PCLMULQDQ_CRC
 extern void crc_finalize(deflate_state *const s);
+#endif
 extern void copy_with_crc(z_stream *strm, unsigned char *dst, unsigned long size);
 
 /* ===========================================================================
@@ -862,7 +864,9 @@ int ZEXPORT deflate(z_stream *strm, int flush) {
     /* Write the trailer */
 #ifdef GZIP
     if (s->wrap == 2) {
+#  ifdef X86_PCLMULQDQ_CRC
         crc_finalize(s);
+#  endif
         put_byte(s, (unsigned char)(strm->adler & 0xff));
         put_byte(s, (unsigned char)((strm->adler >> 8) & 0xff));
         put_byte(s, (unsigned char)((strm->adler >> 16) & 0xff));
