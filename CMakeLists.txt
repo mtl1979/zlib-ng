@@ -654,6 +654,10 @@ else()
     add_feature_info(SSE2 1 "Support the SSE2 instruction set, using \"${SSE2FLAG}\"")
 endif()
 
+if("${ARCH}" MATCHES "arm" OR "${ARCH}" MATCHES "aarch64")
+    set(ZLIB_ARCH_SRCS ${ZLIB_ARCH_SRCS} ${ARCHDIR}/fill_window_arm.c)
+endif()
+
 if(WITH_OPTIM)
     if("${ARCH}" MATCHES "arm")
         if(WITH_ACLE)

@@ -319,8 +319,10 @@ inftrees.o: $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h $(SRCDIR)/inftrees.h
 trees.o: $(SRCDIR)/deflate.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h $(SRCDIR)/trees.h
 zutil.o: $(SRCDIR)/zutil.h $(SRCDIR)/gzguts.h $(SRCDIR)/zlib.h zconf.h
 arch/aarch64/crc32_acle.o: zconf.h
+arch/aarch64/fill_window_arm.o: $(SRCDIR)/deflate.h $(SRCDIR)/deflate_p.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
 arch/aarch64/insert_string_acle.o: $(SRCDIR)/deflate.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
 arch/arm/crc32_acle.o: zconf.h
+arch/arm/fill_window_arm.o: $(SRCDIR)/deflate.h $(SRCDIR)/deflate_p.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
 arch/arm/insert_string_acle.o: $(SRCDIR)/deflate.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
 arch/x86/adler32_sse3.o: $(SRCDIR)/arch/x86/adler32_sse3.h $(SRCDIR)/arch/x86/adler32_intrin.h $(SRCDIR)/arch/x86/adler32_x86.h $(SRCDIR)/zlib.h zconf.h
 arch/x86/adler32_ssse3.o: $(SRCDIR)/arch/x86/adler32_ssse3.h $(SRCDIR)/arch/x86/adler32_intrin.h $(SRCDIR)/arch/x86/adler32_x86.h $(SRCDIR)/zlib.h zconf.h
@@ -348,8 +350,10 @@ inftrees.lo: $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h $(SRCDIR)/inftrees.h
 trees.lo: $(SRCDIR)/deflate.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h $(SRCDIR)/trees.h
 zutil.lo: $(SRCDIR)/zutil.h $(SRCDIR)/gzguts.h $(SRCDIR)/zlib.h zconf.h
 arch/aarch64/crc32_acle.lo: zconf.h
+arch/aarch64/fill_window_arm.lo: $(SRCDIR)/deflate.h $(SRCDIR)/deflate_p.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
 arch/aarch64/insert_string_acle.lo: $(SRCDIR)/deflate.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
 arch/arm/crc32_acle.lo: zconf.h
+arch/arm/fill_window_arm.lo: $(SRCDIR)/deflate.h $(SRCDIR)/deflate_p.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
 arch/arm/insert_string_acle.lo: $(SRCDIR)/deflate.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
 arch/x86/adler32_sse3.lo: $(SRCDIR)/arch/x86/adler32_sse3.h $(SRCDIR)/arch/x86/adler32_intrin.h $(SRCDIR)/arch/x86/adler32_x86.h $(SRCDIR)/zlib.h zconf.h
 arch/x86/adler32_ssse3.lo: $(SRCDIR)/arch/x86/adler32_ssse3.h $(SRCDIR)/arch/x86/adler32_intrin.h $(SRCDIR)/arch/x86/adler32_x86.h $(SRCDIR)/zlib.h zconf.h
