@@ -1085,14 +1085,16 @@ void fill_window(deflate_state *s) {
 
 void fill_window_c(deflate_state *s) {
     register unsigned n;
+#ifdef NOT_TWEAK_COMPILER
     register Pos *p;
-    unsigned more;    /* Amount of free space at the end of the window. */
+#endif
+    unsigned long more;  /* Amount of free space at the end of the window. */
     unsigned int wsize = s->w_size;
 
     Assert(s->lookahead < MIN_LOOKAHEAD, "already enough lookahead");
 
     do {
-        more = (unsigned)(s->window_size -(unsigned long)s->lookahead -(unsigned long)s->strstart);
+        more = s->window_size - s->lookahead - s->strstart;
 
         /* If the window is almost full and there is insufficient lookahead,
          * move the upper half to the lower one to make room in the upper half.
@@ -1105,7 +1107,7 @@ void fill_window_c(deflate_state *s) {
             memcpy(s->window, s->window+wsize, wsize);
             s->match_start -= wsize;
             s->strstart    -= wsize; /* we now have strstart >= MAX_DIST */
-            s->block_start -= (long) wsize;
+            s->block_start -= wsize;
 
             /* Slide the hash table (could be avoided with 32 bit values
                at the expense of memory usage). We slide even when level == 0
@@ -1114,36 +1116,16 @@ void fill_window_c(deflate_state *s) {
                zlib, so we don't care about this pathological case.)
              */
             n = s->hash_size;
-            p = &s->head[n];
 #ifdef NOT_TWEAK_COMPILER
+            p = &s->head[n];
             do {
                 unsigned m;
                 m = *--p;
                 *p = (Pos)(m >= wsize ? m-wsize : NIL);
             } while (--n);
-#else
-            /* As of I make this change, gcc (4.8.*) isn't able to vectorize
-             * this hot loop using saturated-subtraction on x86-64 architecture.
-             * To avoid this defect, we can change the loop such that
-             *    o. the pointer advance forward, and
-             *    o. demote the variable 'm' to be local to the loop, and
-             *       choose type "Pos" (instead of 'unsigned int') for the
-             *       variable to avoid unncessary zero-extension.
-             */
-            {
-                unsigned int i;
-                Pos *q = p - n;
-                for (i = 0; i < n; i++) {
-                    Pos m = *q;
-                    Pos t = wsize;
-                    *q++ = (Pos)(m >= t ? m-t: NIL);
-                }
-            }
 
-#endif /* NOT_TWEAK_COMPILER */
             n = wsize;
             p = &s->prev[n];
-#ifdef NOT_TWEAK_COMPILER
             do {
                 unsigned m;
                 m = *--p;
@@ -1153,14 +1135,18 @@ void fill_window_c(deflate_state *s) {
                  */
             } while (--n);
 #else
-            {
-                unsigned int i;
-                Pos *q = p - n;
-                for (i = 0; i < n; i++) {
-                    Pos m = *q;
-                    Pos t = wsize;
-                    *q++ = (Pos)(m >= t ? m-t: NIL);
-                }
+            for (i = 0; i < n; i++) {
+                if (s->head[i] >= wsize)
+                    s->head[i] -= wsize;
+                else
+                    s->head[i] = NIL;
+            }
+
+            for (i = 0; i < wsize; i++) {
+                if (s->prev[i] >= wsize)
+                    s->prev[i] -= wsize;
+                else
+                    s->prev[i] = NIL;
             }
 #endif /* NOT_TWEAK_COMPILER */
             more += wsize;
@@ -1234,7 +1220,7 @@ void fill_window_c(deflate_state *s) {
      * routines allow scanning to strstart + MAX_MATCH, ignoring lookahead.
      */
     if (s->high_water < s->window_size) {
-        unsigned long curr = s->strstart + (unsigned long)(s->lookahead);
+        unsigned long curr = s->strstart + (unsigned long)s->lookahead;
         unsigned long init;
 
         if (s->high_water < curr) {
@@ -1244,17 +1230,18 @@ void fill_window_c(deflate_state *s) {
             init = s->window_size - curr;
             if (init > WIN_INIT)
                 init = WIN_INIT;
-            memset(s->window + curr, 0, (unsigned)init);
+            memset(s->window + curr, 0, init);
             s->high_water = curr + init;
-        } else if (s->high_water < (unsigned long)curr + WIN_INIT) {
+        } else if (s->high_water < curr + WIN_INIT) {
             /* High water mark at or above current data, but below current data
              * plus WIN_INIT -- zero out to current data plus WIN_INIT, or up
              * to end of window, whichever is less.
              */
-            init = (unsigned long)curr + WIN_INIT - s->high_water;
-            if (init > s->window_size - s->high_water)
-                init = s->window_size - s->high_water;
-            memset(s->window + s->high_water, 0, (unsigned)init);
+            init = curr + WIN_INIT;
+            if (init > s->window_size)
+                init = s->window_size;
+            init -= s->high_water;
+            memset(s->window + s->high_water, 0, init);
             s->high_water += init;
         }
     }
