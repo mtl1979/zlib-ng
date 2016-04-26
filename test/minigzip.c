@@ -65,13 +65,13 @@ void myfree (void *, void *);
 
 void *myalloc(void *q, unsigned n, unsigned m)
 {
-    q = NULL;
+    (void)q;
     return calloc(n, m);
 }
 
 void myfree(void *q, void *p)
 {
-    q = NULL;
+    (void)q;
     free(p);
 }
 
