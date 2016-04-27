@@ -1,4 +1,6 @@
-Travis CI: [![build status](https://api.travis-ci.org/Dead2/zlib-ng.svg)](https://travis-ci.org/Dead2/zlib-ng/)
+Travis CI: [![build status](https://api.travis-ci.org/mtl1979/zlib-ng.svg)](https://travis-ci.org/mtl1979/zlib-ng/)
+
+Coverity: [![coverity status](https://scan.coverity.com/projects/8670/badge.svg)](https://scan.coverity.com/projects/mtl1979-zlib-ng)
 
 zlib-ng - zlib for the next generation systems
 
