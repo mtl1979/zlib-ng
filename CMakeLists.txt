@@ -221,6 +221,15 @@ if(HAVE_BUILTIN_CTZL)
     add_definitions(-DHAVE_BUILTIN_CTZL)
 endif()
 
+# Macro to check if source compiles when cross-compiling
+# or runs when compiling natively
+macro(check_c_source_compile_or_run source flag)
+    if(CMAKE_CROSSCOMPILING)
+        check_c_source_compiles("${source}" ${flag})
+    else()
+        check_c_source_runs("${source}" ${flag})
+    endif()
+endmacro(check_c_source_compile_or_run)
 if(MSVC)
     set(CMAKE_DEBUG_POSTFIX "d")
     add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
@@ -235,7 +244,7 @@ else()
     else()
         set(CMAKE_REQUIRED_FLAGS "${SSE2FLAG}")
     endif()
-    check_c_source_runs(
+    check_c_source_compile_or_run(
         "#include <immintrin.h>
         int main(void)
         {
@@ -251,7 +260,7 @@ else()
         # use the generic SSE4 enabler option to check for the SSE4.2 instruction we require:
         set(CMAKE_REQUIRED_FLAGS "${SSE4FLAG}")
     endif()
-    check_c_source_runs(
+    check_c_source_compile_or_run(
         "int main(void)
         {
             unsigned val = 0, h = 0;
@@ -266,7 +275,7 @@ else()
         # the PCLMUL instruction we use also requires an SSE4.1 instruction check for both
         set(CMAKE_REQUIRED_FLAGS "${SSE4FLAG} ${PCLMULFLAG}")
     endif()
-    check_c_source_runs(
+    check_c_source_compile_or_run(
         "#include <immintrin.h>
         #include <smmintrin.h>
         #include <wmmintrin.h>
