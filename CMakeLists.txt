@@ -275,9 +275,8 @@ else()
             __m128i a = _mm_setzero_si128();
             __m128i b = _mm_setzero_si128();
             __m128i c = _mm_clmulepi64_si128(a, b, 0x10);
-            unsigned int d = _mm_extract_epi32(c, 2);
-            (void)c;
-            return (int) d;
+            int d = _mm_extract_epi32(c, 2);
+            return d;
         }"
         HAVE_PCLMULQDQ_INTRIN
     )
@@ -311,20 +310,17 @@ endmacro(add_intrinsics_option)
 
 set(ZLIB_ARCH_SRCS)
 set(ARCHDIR "arch/generic")
-if(${ARCH} MATCHES "x86_64" OR ${ARCH} MATCHES "AMD64")
+if("${ARCH}" MATCHES "x86_64" OR "${ARCH}" MATCHES "AMD64")
     set(ARCHDIR "arch/x86")
     add_definitions(-DX86_64 -DX86_NOCHECK_SSE2 -DUNALIGNED_OK -DUNROLL_LESS)
     add_feature_info(SSE2 1 "Use the SSE2 instruction set, using \"${SSE2FLAG}\"")
+elseif("${ARCH}" MATCHES "arm")
+    set(ARCHDIR "arch/arm")
+    add_definitions(-DUNALIGNED_OK -DUNROLL_LESS)
 else()
-    string(FIND ${ARCH} "arm" ARMPOS)
-    if(${ARMPOS} LESS 0)
-        set(ARCHDIR "arch/x86")
-        add_definitions(-DX86 -DUNALIGNED_OK -DUNROLL_LESS)
-        add_feature_info(SSE2 1 "Support the SSE2 instruction set, using \"${SSE2FLAG}\"")
-    else()
-        set(ARCHDIR "arch/arm")
-        add_definitions(-DUNALIGNED_OK -DUNROLL_LESS)
-    endif()
+    set(ARCHDIR "arch/x86")
+    add_definitions(-DX86 -DUNALIGNED_OK -DUNROLL_LESS)
+    add_feature_info(SSE2 1 "Support the SSE2 instruction set, using \"${SSE2FLAG}\"")
 endif()
 if("${ARCHDIR}" MATCHES "arch/x86" AND WITH_OPTIM)
     add_definitions("-DX86_CPUID")
