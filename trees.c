@@ -282,12 +282,12 @@ void gen_trees_header() {
 
     fprintf(header, "static const int base_length[LENGTH_CODES] = {\n");
     for (i = 0; i < LENGTH_CODES; i++) {
-        fprintf(header, "%1u%s", base_length[i], SEPARATOR(i, LENGTH_CODES-1, 20));
+        fprintf(header, "%d%s", base_length[i], SEPARATOR(i, LENGTH_CODES-1, 20));
     }
 
     fprintf(header, "static const int base_dist[D_CODES] = {\n");
     for (i = 0; i < D_CODES; i++) {
-        fprintf(header, "%5u%s", base_dist[i], SEPARATOR(i, D_CODES-1, 10));
+        fprintf(header, "%5d%s", base_dist[i], SEPARATOR(i, D_CODES-1, 10));
     }
 
     fprintf(header, "#endif /* TREES_H_ */\n");
@@ -478,7 +478,7 @@ static void gen_bitlen(deflate_state *s, tree_desc *desc) {
             if (m > max_code)
                 continue;
             if (tree[m].Len != bits) {
-                Trace((stderr, "code %d bits %d->%d\n", m, tree[m].Len, bits));
+                Trace((stderr, "code %d bits %d->%u\n", m, tree[m].Len, bits));
                 s->opt_len += (long)((bits - tree[m].Len) * tree[m].Freq);
                 tree[m].Len = (uint16_t)bits;
             }
@@ -753,7 +753,7 @@ static int build_bl_tree(deflate_state *s) {
     }
     /* Update opt_len to include the bit length tree and counts */
     s->opt_len += 3*(max_blindex+1) + 5+5+4;
-    Tracev((stderr, "\ndyn trees: dyn %ld, stat %ld", s->opt_len, s->static_len));
+    Tracev((stderr, "\ndyn trees: dyn %lu, stat %lu", s->opt_len, s->static_len));
 
     return max_blindex;
 }
@@ -773,16 +773,16 @@ static void send_all_trees(deflate_state *s, int lcodes, int dcodes, int blcodes
     send_bits(s, dcodes-1,   5);
     send_bits(s, blcodes-4,  4); /* not -3 as stated in appnote.txt */
     for (rank = 0; rank < blcodes; rank++) {
-        Tracev((stderr, "\nbl code %2d ", bl_order[rank]));
+        Tracev((stderr, "\nbl code %2u ", bl_order[rank]));
         send_bits(s, s->bl_tree[bl_order[rank]].Len, 3);
     }
-    Tracev((stderr, "\nbl tree: sent %ld", s->bits_sent));
+    Tracev((stderr, "\nbl tree: sent %lu", s->bits_sent));
 
     send_tree(s, (ct_data *)s->dyn_ltree, lcodes-1); /* literal tree */
-    Tracev((stderr, "\nlit tree: sent %ld", s->bits_sent));
+    Tracev((stderr, "\nlit tree: sent %lu", s->bits_sent));
 
     send_tree(s, (ct_data *)s->dyn_dtree, dcodes-1); /* distance tree */
-    Tracev((stderr, "\ndist tree: sent %ld", s->bits_sent));
+    Tracev((stderr, "\ndist tree: sent %lu", s->bits_sent));
 }
 
 /* ===========================================================================
@@ -839,10 +839,10 @@ void ZLIB_INTERNAL _tr_flush_block(deflate_state *s, char *buf, unsigned long st
 
         /* Construct the literal and distance trees */
         build_tree(s, (tree_desc *)(&(s->l_desc)));
-        Tracev((stderr, "\nlit data: dyn %ld, stat %ld", s->opt_len, s->static_len));
+        Tracev((stderr, "\nlit data: dyn %lu, stat %lu", s->opt_len, s->static_len));
 
         build_tree(s, (tree_desc *)(&(s->d_desc)));
-        Tracev((stderr, "\ndist data: dyn %ld, stat %ld", s->opt_len, s->static_len));
+        Tracev((stderr, "\ndist data: dyn %lu, stat %lu", s->opt_len, s->static_len));
         /* At this point, opt_len and static_len are the total bit lengths of
          * the compressed block data, excluding the tree representations.
          */
