@@ -299,7 +299,7 @@ ZLIB_INTERNAL uint32_t crc32_little(uint32_t crc, const unsigned char *buf, z_of
 
 /* ========================================================================= */
 #if BYTE_ORDER == BIG_ENDIAN
-#define DOBIG4 c ^= *++buf4; \
+#define DOBIG4 c ^= *buf4++; \
         c = crc_table[4][c & 0xff] ^ crc_table[5][(c >> 8) & 0xff] ^ \
             crc_table[6][(c >> 16) & 0xff] ^ crc_table[7][c >> 24]
 #define DOBIG32 DOBIG4; DOBIG4; DOBIG4; DOBIG4; DOBIG4; DOBIG4; DOBIG4; DOBIG4
@@ -317,7 +317,6 @@ ZLIB_INTERNAL uint32_t crc32_big(uint32_t crc, const unsigned char *buf, z_off64
     }
 
     buf4 = (const uint32_t *)(const void *)buf;
-    buf4--;
 
 #ifndef UNROLL_LESS
     while (len >= 32) {
@@ -330,7 +329,6 @@ ZLIB_INTERNAL uint32_t crc32_big(uint32_t crc, const unsigned char *buf, z_off64
         DOBIG4;
         len -= 4;
     }
-    buf4++;
     buf = (const unsigned char *)buf4;
 
     if (len) do {
