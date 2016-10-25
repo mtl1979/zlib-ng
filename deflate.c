@@ -68,6 +68,7 @@ const char deflate_copyright[] = " deflate 1.2.8.f Copyright 1995-2013 Jean-loup
 typedef block_state (*compress_func) (deflate_state *s, int flush);
 /* Compression function. Returns the block state after the call. */
 
+static int deflateStateCheck      (z_streamp strm);
 static block_state deflate_stored (deflate_state *s, int flush);
 block_state deflate_fast          (deflate_state *s, int flush);
 block_state deflate_quick         (deflate_state *s, int flush);
@@ -226,6 +227,7 @@ int ZEXPORT deflateInit2_(z_stream *strm, int level, int method, int windowBits,
         return Z_MEM_ERROR;
     strm->state = (struct internal_state *)s;
     s->strm = strm;
+    s->status = INIT_STATE;     /* to pass state test in deflateReset() */
 
     s->wrap = wrap;
     s->gzhead = NULL;
@@ -277,6 +279,27 @@ int ZEXPORT deflateInit2_(z_stream *strm, int level, int method, int windowBits,
     return deflateReset(strm);
 }
 
+/* =========================================================================
+ * Check for a valid deflate stream state. Return 0 if ok, 1 if not.
+ */
+static int deflateStateCheck (z_stream *strm)
+{
+    deflate_state *s;
+    if (strm == NULL ||
+        strm->zalloc == (alloc_func)0 || strm->zfree == (free_func)0)
+        return 1;
+    s = strm->state;
+    if (s == NULL || s->strm != strm || (s->status != INIT_STATE &&
+                                           s->status != EXTRA_STATE &&
+                                           s->status != NAME_STATE &&
+                                           s->status != COMMENT_STATE &&
+                                           s->status != HCRC_STATE &&
+                                           s->status != BUSY_STATE &&
+                                           s->status != FINISH_STATE))
+        return 1;
+    return 0;
+}
+
 /* ========================================================================= */
 int ZEXPORT deflateSetDictionary(z_stream *strm, const unsigned char *dictionary, unsigned int dictLength) {
     deflate_state *s;
@@ -285,7 +308,7 @@ int ZEXPORT deflateSetDictionary(z_stream *strm, const unsigned char *dictionary
     uint32_t avail;
     const unsigned char *next;
 
-    if (strm == NULL || strm->state == NULL || dictionary == NULL)
+    if (deflateStateCheck(strm) || dictionary == NULL)
         return Z_STREAM_ERROR;
     s = strm->state;
     wrap = s->wrap;
@@ -339,7 +362,7 @@ int ZEXPORT deflateSetDictionary(z_stream *strm, const unsigned char *dictionary
 int ZEXPORT deflateResetKeep(z_stream *strm) {
     deflate_state *s;
 
-    if (strm == NULL || strm->state == NULL || strm->zalloc == NULL || strm->zfree == NULL) {
+    if (deflateStateCheck(strm)) {
         return Z_STREAM_ERROR;
     }
 
@@ -379,9 +402,7 @@ int ZEXPORT deflateReset(z_stream *strm) {
 
 /* ========================================================================= */
 int ZEXPORT deflateSetHeader(z_stream *strm, gz_headerp head) {
-    if (strm == NULL || strm->state == NULL)
-        return Z_STREAM_ERROR;
-    if (strm->state->wrap != 2)
+    if (deflateStateCheck(strm) || strm->state->wrap != 2)
         return Z_STREAM_ERROR;
     strm->state->gzhead = head;
     return Z_OK;
@@ -389,7 +410,7 @@ int ZEXPORT deflateSetHeader(z_stream *strm, gz_headerp head) {
 
 /* ========================================================================= */
 int ZEXPORT deflatePending(z_stream *strm, uint32_t *pending, int *bits) {
-    if (strm == NULL || strm->state == NULL)
+    if (deflateStateCheck(strm))
         return Z_STREAM_ERROR;
     if (pending != NULL)
         *pending = strm->state->pending;
@@ -403,7 +424,7 @@ int ZEXPORT deflatePrime(z_stream *strm, int bits, int value) {
     deflate_state *s;
     int put;
 
-    if (strm == NULL || strm->state == NULL)
+    if (deflateStateCheck(strm))
         return Z_STREAM_ERROR;
     s = strm->state;
     if ((unsigned char *)(s->d_buf) < s->pending_out + ((Buf_size + 7) >> 3))
@@ -427,7 +448,7 @@ int ZEXPORT deflateParams(z_stream *strm, int level, int strategy) {
     compress_func func;
     int err = Z_OK;
 
-    if (strm == NULL || strm->state == NULL)
+    if (deflateStateCheck(strm))
         return Z_STREAM_ERROR;
     s = strm->state;
 
@@ -459,7 +480,7 @@ int ZEXPORT deflateParams(z_stream *strm, int level, int strategy) {
 int ZEXPORT deflateTune(z_stream *strm, int good_length, int max_lazy, int nice_length, int max_chain) {
     deflate_state *s;
 
-    if (strm == NULL || strm->state == NULL)
+    if (deflateStateCheck(strm))
         return Z_STREAM_ERROR;
     s = strm->state;
     s->good_match = good_length;
@@ -495,7 +516,7 @@ unsigned long ZEXPORT deflateBound(z_stream *strm, unsigned long sourceLen) {
     complen = sourceLen + ((sourceLen + 7) >> 3) + ((sourceLen + 63) >> 6) + 5;
 
     /* if can't get parameters, return conservative bound plus zlib wrapper */
-    if (strm == NULL || strm->state == NULL)
+    if (deflateStateCheck(strm))
         return complen + 6;
 
     /* compute wrapper length */
@@ -584,7 +605,7 @@ int ZEXPORT deflate(z_stream *strm, int flush) {
     int old_flush; /* value of flush param for previous deflate call */
     deflate_state *s;
 
-    if (strm == NULL || strm->state == NULL || flush > Z_BLOCK || flush < 0) {
+    if (deflateStateCheck(strm) || flush > Z_BLOCK || flush < 0) {
         return Z_STREAM_ERROR;
     }
     s = strm->state;
@@ -892,19 +913,10 @@ int ZEXPORT deflate(z_stream *strm, int flush) {
 int ZEXPORT deflateEnd(z_stream *strm) {
     int status;
 
-    if (strm == NULL || strm->state == NULL)
+    if (deflateStateCheck(strm))
         return Z_STREAM_ERROR;
 
     status = strm->state->status;
-    if (status != INIT_STATE &&
-        status != EXTRA_STATE &&
-        status != NAME_STATE &&
-        status != COMMENT_STATE &&
-        status != HCRC_STATE &&
-        status != BUSY_STATE &&
-        status != FINISH_STATE) {
-      return Z_STREAM_ERROR;
-    }
 
     /* Deallocate in reverse order of allocations: */
     TRY_FREE(strm, strm->state->pending_buf);
@@ -926,7 +938,7 @@ int ZEXPORT deflateCopy(z_stream *dest, z_stream *source) {
     deflate_state *ss;
     uint16_t *overlay;
 
-    if (source == NULL || dest == NULL || source->state == NULL) {
+    if (deflateStateCheck(source) || dest == NULL) {
         return Z_STREAM_ERROR;
     }
 
