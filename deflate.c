@@ -830,7 +830,8 @@ int ZEXPORT deflate(z_stream *strm, int flush) {
                     (s->strategy == Z_RLE ? deflate_rle(s, flush) : deflate_fast(s, flush));
         else
 #endif
-            bstate = s->strategy == Z_HUFFMAN_ONLY ? deflate_huff(s, flush) :
+            bstate = s->level == 0 ? deflate_stored(s, flush) : 
+                     s->strategy == Z_HUFFMAN_ONLY ? deflate_huff(s, flush) :
                     (s->strategy == Z_RLE ? deflate_rle(s, flush) : (*(configuration_table[s->level].func))(s, flush));
 
         if (bstate == finish_started || bstate == finish_done) {
