@@ -20,10 +20,14 @@ static size_t gz_read(gz_statep, void *, size_t);
    read the number of bytes requested, depending on the type of descriptor. */
 static int gz_load(gz_statep state, unsigned char *buf, unsigned len, unsigned *have) {
     int ret;
+    unsigned get, max = ((unsigned)-1 >> 2) + 1;
 
     *have = 0;
     do {
-        ret = read(state->fd, buf + *have, len - *have);
+        get = len - *have;
+        if (get > max)
+            get = max;
+        ret = read(state->fd, buf + *have, get);
         if (ret <= 0)
             break;
         *have += ret;
