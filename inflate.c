@@ -1497,7 +1497,7 @@ long ZEXPORT inflateMark(z_stream *strm) {
 unsigned long ZEXPORT inflateCodesUsed(z_stream *strm)
 {
     struct inflate_state *state;
-    if (inflateStateCheck(strm)) return (unsigned long)0 - 1;
+    if (inflateStateCheck(strm)) return (unsigned long)-1;
     state = (struct inflate_state *)strm->state;
     return (unsigned long)(state->next - state->codes);
 }
