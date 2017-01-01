@@ -63,12 +63,12 @@
 
 #include "deflate.h"
 
-ZLIB_INTERNAL uint32_t crc32_generic(uint32_t, const unsigned char *, z_off64_t);
+ZLIB_INTERNAL uint32_t crc32_generic(uint32_t, const unsigned char *, size_t);
 
 #if BYTE_ORDER == LITTLE_ENDIAN
-ZLIB_INTERNAL uint32_t crc32_little(uint32_t, const unsigned char *, z_off64_t);
+ZLIB_INTERNAL uint32_t crc32_little(uint32_t, const unsigned char *, size_t);
 #elif BYTE_ORDER == BIG_ENDIAN
-ZLIB_INTERNAL uint32_t crc32_big(uint32_t, const unsigned char *, z_off64_t);
+ZLIB_INTERNAL uint32_t crc32_big(uint32_t, const unsigned char *, size_t);
 #endif
 
 /* Local functions for crc concatenation */
@@ -207,7 +207,7 @@ const uint32_t * ZEXPORT get_crc_table(void) {
     return (const uint32_t *)crc_table;
 }
 
-uint32_t ZEXPORT crc32(uint32_t crc, const unsigned char *buf, z_off64_t len) {
+uint32_t ZEXPORT crc32_z(uint32_t crc, const unsigned char *buf, size_t len) {
     if (buf == NULL) return 0;
 
 #ifdef DYNAMIC_CRC_TABLE
@@ -226,13 +226,17 @@ uint32_t ZEXPORT crc32(uint32_t crc, const unsigned char *buf, z_off64_t len) {
     return crc32_generic(crc, buf, len);
 }
 
+uint32_t ZEXPORT crc32(uint32_t crc, const unsigned char *buf, uint32_t len) {
+    return crc32_z(crc, buf, len);
+}
+
 /* ========================================================================= */
 #define DO1 crc = crc_table[0][((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8)
 #define DO8 DO1; DO1; DO1; DO1; DO1; DO1; DO1; DO1
 #define DO4 DO1; DO1; DO1; DO1
 
 /* ========================================================================= */
-ZLIB_INTERNAL uint32_t crc32_generic(uint32_t crc, const unsigned char *buf, z_off64_t len)
+ZLIB_INTERNAL uint32_t crc32_generic(uint32_t crc, const unsigned char *buf, size_t len)
 {
     crc = crc ^ 0xffffffff;
 
@@ -254,7 +258,6 @@ ZLIB_INTERNAL uint32_t crc32_generic(uint32_t crc, const unsigned char *buf, z_o
     return crc ^ 0xffffffff;
 }
 
-
 /*
    This BYFOUR code accesses the passed unsigned char * buffer with a 32-bit
    integer pointer type. This violates the strict aliasing rule, where a
@@ -275,7 +278,7 @@ ZLIB_INTERNAL uint32_t crc32_generic(uint32_t crc, const unsigned char *buf, z_o
 #define DOLIT32 DOLIT4; DOLIT4; DOLIT4; DOLIT4; DOLIT4; DOLIT4; DOLIT4; DOLIT4
 
 /* ========================================================================= */
-ZLIB_INTERNAL uint32_t crc32_little(uint32_t crc, const unsigned char *buf, z_off64_t len) {
+ZLIB_INTERNAL uint32_t crc32_little(uint32_t crc, const unsigned char *buf, size_t len) {
     register uint32_t c;
     register const uint32_t *buf4;
 
@@ -317,7 +320,7 @@ ZLIB_INTERNAL uint32_t crc32_little(uint32_t crc, const unsigned char *buf, z_of
 #define DOBIG32 DOBIG4; DOBIG4; DOBIG4; DOBIG4; DOBIG4; DOBIG4; DOBIG4; DOBIG4
 
 /* ========================================================================= */
-ZLIB_INTERNAL uint32_t crc32_big(uint32_t crc, const unsigned char *buf, z_off64_t len) {
+ZLIB_INTERNAL uint32_t crc32_big(uint32_t crc, const unsigned char *buf, size_t len) {
     register uint32_t c;
     register const uint32_t *buf4;
 
