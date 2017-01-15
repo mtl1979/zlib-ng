@@ -53,7 +53,7 @@
 #include "deflate_p.h"
 #include "match.h"
 
-const char deflate_copyright[] = " deflate 1.2.9.f Copyright 1995-2016 Jean-loup Gailly and Mark Adler ";
+const char deflate_copyright[] = " deflate 1.2.11.f Copyright 1995-2016 Jean-loup Gailly and Mark Adler ";
 /*
   If you use the zlib library in a product, an acknowledgment is welcome
   in the documentation of your product. If for some reason you cannot
@@ -516,7 +516,8 @@ int ZEXPORT deflateParams(z_stream *strm, int level, int strategy) {
     }
     func = configuration_table[s->level].func;
 
-    if ((strategy != s->strategy || func != configuration_table[level].func)) {
+    if ((strategy != s->strategy || func != configuration_table[level].func) &&
+        s->high_water) {
         /* Flush the last buffer: */
         int err = deflate(strm, Z_BLOCK);
         if (err == Z_STREAM_ERROR)
