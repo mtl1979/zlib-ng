@@ -440,7 +440,7 @@ int ZEXPORT deflateResetKeep(z_stream *strm) {
     else
 #endif
         strm->adler = adler32_z(0L, NULL, 0);
-    s->last_flush = Z_NO_FLUSH;
+    s->last_flush = -2;
 
     _tr_init(s);
 
@@ -520,7 +520,7 @@ int ZEXPORT deflateParams(z_stream *strm, int level, int strategy) {
         int err = deflate(strm, Z_BLOCK);
         if (err == Z_STREAM_ERROR)
             return err;
-        if (strm->avail_out == 0)
+        if (strm->avail_in || (s->strstart - s->block_start) + s->lookahead)
             return Z_BUF_ERROR;
     }
     if (s->level != level) {
