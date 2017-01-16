@@ -24,7 +24,7 @@ const char * const z_errmsg[10] = {
 };
 
 const char zlibng_string[] =
-   " zlib-ng 1.9.9 forked from zlib 1.2.11 ";
+   " zlib-ng 1.9.9 forked from zlib 1.2.11.1 ";
 
 const char * ZEXPORT zlibVersion(void)
 {
