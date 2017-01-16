@@ -37,7 +37,7 @@
 #  include <io.h>
 #endif
 
-#if defined(_WIN32) || defined(__CYGWIN__) || defined(__MINGW__)
+#if defined(_WIN32) || defined(__MINGW__)
 #  define WIDECHAR
 #endif
 
