@@ -7,8 +7,12 @@
 
 #include "zutil.h"
 
+uint32_t adler32_c(uint32_t adler, const unsigned char *buf, size_t len);
+
 #ifdef X86_CPUID
 # include "arch/x86/adler32_x86.h"
+#elif (defined(__ARM_NEON__) || defined(__ARM_NEON))
+extern uint32_t adler32_neon(uint32_t adler, const unsigned char *buf, size_t len);
 #endif
 
 static uint32_t adler32_combine_(uint32_t adler1, uint32_t adler2, z_off64_t len2);
@@ -149,6 +153,8 @@ uint32_t adler32_c(uint32_t adler, const unsigned char *buf, size_t len) {
 uint32_t ZEXPORT adler32_z(uint32_t adler, const unsigned char *buf, size_t len) {
 #if X86_CPUID
     return adler32_x86(adler, buf, len);
+#elif (defined(__ARM_NEON__) || defined(__ARM_NEON))
+    return adler32_neon(adler, buf, len);
 #else
     return adler32_c(adler, buf, len);
 #endif
