@@ -48,10 +48,10 @@ crc_folding.lo: $(SRCDIR)/crc_folding.c
 	$(CC) $(SFLAGS) $(PCLMULFLAG) -DPIC $(INCLUDES) -c -o $@ $(SRCDIR)/crc_folding.c
 
 crc_pclmulqdq.o: $(SRCDIR)/crc_pclmulqdq.c
-	$(CC) $(CFLAGS) $(SSE4FLAG) $(INCLUDES) -c -o $@ $(SRCDIR)/crc_pclmulqdq.c
+	$(CC) $(CFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/crc_pclmulqdq.c
 
 crc_pclmulqdq.lo: $(SRCDIR)/crc_pclmulqdq.c
-	$(CC) $(SFLAGS) $(SSE4FLAG) -DPIC $(INCLUDES) -c -o $@ $(SRCDIR)/crc_pclmulqdq.c
+	$(CC) $(SFLAGS) -DPIC $(INCLUDES) -c -o $@ $(SRCDIR)/crc_pclmulqdq.c
 
 mostlyclean: clean
 clean:
