@@ -228,7 +228,7 @@ endif
 install-shared: $(SHAREDTARGET)
 ifneq ($(SHAREDTARGET),)
 	-@if [ ! -d $(DESTDIR)$(sharedlibdir) ]; then mkdir -p $(DESTDIR)$(sharedlibdir); fi
-	rm -f $(DESTDIR)$(sharedlibdir)/$(SHAREDTARGET);
+	rm -f $(DESTDIR)$(sharedlibdir)/$(SHAREDTARGET)
 	cp $(SHAREDTARGET) $(DESTDIR)$(sharedlibdir)
 	chmod 644 $(DESTDIR)$(sharedlibdir)/$(SHAREDTARGET)
 ifneq ($(SHAREDLIB),$(SHAREDTARGET))
