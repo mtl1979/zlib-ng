@@ -17,7 +17,6 @@ include(CheckFunctionExists)
 include(CheckIncludeFile)
 include(CheckCSourceCompiles)
 include(CheckCSourceRuns)
-include(CheckLibraryExists)
 include(FeatureSummary)
 
 # make sure we use an appropriate BUILD_TYPE by default, "Release" to be exact
@@ -227,7 +226,6 @@ if(MSVC)
     set(CMAKE_DEBUG_POSTFIX "d")
     add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
     add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 else()
     #
     # not MSVC, so we need to check if we have the MS-style SSE etc. intrinsics
