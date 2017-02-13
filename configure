@@ -112,6 +112,7 @@ pclmulflag="-mpclmul -msse4"
 without_optimizations=0
 without_new_strategies=0
 gcc=0
+warn=0
 debug=0
 old_cc="$CC"
 old_cflags="$CFLAGS"
@@ -165,6 +166,7 @@ case "$1" in
     --localstatedir=*) echo "ignored option: --localstatedir" | tee -a configure.log; shift ;;
     -noopt | --without-optimizations) without_optimizations=1; shift;;
     -oldstrat | --without-new-strategies) without_new_strategies=1; shift;;
+    -w* | --warn) warn=1; shift ;;
     -d* | --debug) debug=1; shift ;;
     *)
       echo "unknown option: $1" | tee -a configure.log
@@ -242,7 +244,7 @@ if test "$gcc" -eq 1 && ($cc -c $test.c) >> configure.log 2>&1; then
     sse4flag="-march=native"
     pclmulflag="-march=native"
   fi
-  if test "${ZLIBGCCWARN}" = "YES"; then
+  if test $warn -eq 1; then
     CFLAGS="${CFLAGS} -Wextra -pedantic"
   fi
   if test $debug -eq 1; then
