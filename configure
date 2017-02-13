@@ -108,7 +108,7 @@ build64=0
 native=0
 sse2flag="-msse2"
 sse4flag="-msse4"
-pclmulflag="-mpclmul -msse4"
+pclmulflag="-mpclmul"
 without_optimizations=0
 without_new_strategies=0
 gcc=0
@@ -240,9 +240,8 @@ if test "$gcc" -eq 1 && ($cc -c $test.c) >> configure.log 2>&1; then
     SFLAGS="${SFLAGS} -m64"
   fi
   if test $native -eq 1; then
-    sse2flag="-march=native"
-    sse4flag="-march=native"
-    pclmulflag="-march=native"
+    CFLAGS="${CFLAGS} -march=native"
+    SFLAGS="${SFLAGS} -march=native"
   fi
   if test $warn -eq 1; then
     CFLAGS="${CFLAGS} -Wextra -pedantic"
