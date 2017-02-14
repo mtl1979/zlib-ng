@@ -226,10 +226,6 @@ uint32_t ZEXPORT crc32_z(uint32_t crc, const unsigned char *buf, size_t len) {
     return crc32_generic(crc, buf, len);
 }
 
-uint32_t ZEXPORT crc32(uint32_t crc, const unsigned char *buf, uint32_t len) {
-    return crc32_z(crc, buf, len);
-}
-
 /* ========================================================================= */
 #define DO1 crc = crc_table[0][((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8)
 #define DO8 DO1; DO1; DO1; DO1; DO1; DO1; DO1; DO1
@@ -256,6 +252,10 @@ ZLIB_INTERNAL uint32_t crc32_generic(uint32_t crc, const unsigned char *buf, siz
         DO1;
     } while (--len);
     return crc ^ 0xffffffff;
+}
+
+uint32_t ZEXPORT crc32(uint32_t crc, const unsigned char *buf, uint32_t len) {
+    return crc32_z(crc, buf, len);
 }
 
 /*

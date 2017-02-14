@@ -1414,8 +1414,7 @@ ZEXTERN int ZEXPORT gzwrite(gzFile file, void const *buf, unsigned len);
    error.
 */
 
-ZEXTERN size_t ZEXPORT gzfwrite(void const *buf, size_t size,
-                                      size_t nitems, gzFile file);
+ZEXTERN size_t ZEXPORT gzfwrite(void const *buf, size_t size, size_t nitems, gzFile file);
 /*
      gzfwrite() writes nitems items of size size from buf to file, duplicating
    the interface of stdio's fwrite(), with size_t request and return types.
@@ -1814,6 +1813,7 @@ ZEXTERN int              ZEXPORT inflateSyncPoint (z_stream *);
 ZEXTERN const uint32_t * ZEXPORT get_crc_table    (void);
 ZEXTERN int              ZEXPORT inflateUndermine (z_stream *, int);
 ZEXTERN int              ZEXPORT inflateValidate  (z_stream *, int);
+ZEXTERN unsigned long    ZEXPORT inflateCodesUsed (z_stream *);
 ZEXTERN int              ZEXPORT inflateResetKeep (z_stream *);
 ZEXTERN int              ZEXPORT deflateResetKeep (z_stream *);
 

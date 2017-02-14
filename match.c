@@ -276,7 +276,6 @@ ZLIB_INTERNAL unsigned longest_match(deflate_state *const s, IPos cur_match) {
 #endif
 
 #ifdef std3_longest_match
-
 /* longest_match() with minor change to improve performance (in terms of
  * execution time).
  *

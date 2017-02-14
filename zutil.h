@@ -65,31 +65,8 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 
         /* target dependencies */
 
-#if defined(MSDOS) || (defined(WINDOWS) && !defined(WIN32))
-#  define OS_CODE  0x00
-#  ifndef Z_SOLO
-#    if defined(__TURBOC__) || defined(__BORLANDC__)
-#      if (__STDC__ == 1) && (defined(__LARGE__) || defined(__COMPACT__))
-         /* Allow compilation with ANSI keywords only enabled */
-         void _Cdecl farfree( void *block );
-         void *_Cdecl farmalloc( unsigned long nbytes );
-#      else
-#        include <alloc.h>
-#      endif
-#    else /* MSC or DJGPP */
-#      include <malloc.h>
-#    endif
-#  endif
-#endif
-
 #ifdef AMIGA
 #  define OS_CODE  1
-#endif
-
-#if defined(VAXC) || defined(VMS)
-#  define OS_CODE  2
-#  define F_OPEN(name, mode) \
-     fopen((name), (mode), "mbc=60", "ctx=stm", "rfm=fix", "mrs=512")
 #endif
 
 #ifdef __370__
@@ -115,15 +92,6 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 
 #if defined(MACOS) || defined(TARGET_OS_MAC)
 #  define OS_CODE  7
-#  ifndef Z_SOLO
-#    if defined(__MWERKS__) && __dest_os != __be_os && __dest_os != __win32_os
-#      include <unix.h> /* for fdopen */
-#    else
-#      ifndef fdopen
-#        define fdopen(fd,mode) NULL /* No fdopen() */
-#      endif
-#    endif
-#  endif
 #endif
 
 #ifdef __acorn
@@ -134,32 +102,12 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #  define OS_CODE  10
 #endif
 
-#ifdef _BEOS_
-#  define OS_CODE  16
-#endif
-
-#ifdef __TOS_OS400__
-#  define OS_CODE 18
-#endif
-
 #ifdef __APPLE__
 #  define OS_CODE 19
 #endif
 
-#if defined(_BEOS_) || defined(RISCOS)
-#  define fdopen(fd,mode) NULL /* No fdopen() */
-#endif
-
-#if (defined(_MSC_VER) && (_MSC_VER > 600)) && !defined __INTERIX
-#  if defined(_WIN32_WCE)
-#    define fdopen(fd,mode) NULL /* No fdopen() */
-#    ifndef _PTRDIFF_T_DEFINED
-       typedef int ptrdiff_t;
-#      define _PTRDIFF_T_DEFINED
-#    endif
-#  else
-#    define fdopen(fd,type)  _fdopen(fd,type)
-#  endif
+#if (defined(_MSC_VER) && (_MSC_VER > 600))
+#  define fdopen(fd, type)  _fdopen(fd, type)
 #endif
 
 /* provide prototypes for these when building zlib without LFS */
@@ -177,7 +125,7 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
         /* common defaults */
 
 #ifndef OS_CODE
-#  define OS_CODE  3     /* assume Unix */
+#  define OS_CODE  3  /* assume Unix */
 #endif
 
 #ifndef F_OPEN

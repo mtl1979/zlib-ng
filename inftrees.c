@@ -207,7 +207,7 @@ int ZLIB_INTERNAL inflate_table(codetype type, uint16_t *lens, unsigned codes,
     for (;;) {
         /* create table entry */
         here.bits = (unsigned char)(len - drop);
-        if ((uint16_t)(work[sym] + 1) < match) {
+        if (work[sym] + 1U < match) {
             here.op = (unsigned char)0;
             here.val = work[sym];
         } else if (work[sym] >= match) {

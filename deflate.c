@@ -68,7 +68,7 @@ const char deflate_copyright[] = " deflate 1.2.11.f Copyright 1995-2016 Jean-lou
 typedef block_state (*compress_func) (deflate_state *s, int flush);
 /* Compression function. Returns the block state after the call. */
 
-static int deflateStateCheck      (z_streamp strm);
+static int deflateStateCheck      (z_stream *strm);
 static void slide_hash            (deflate_state *s);
 static block_state deflate_stored (deflate_state *s, int flush);
 block_state deflate_fast          (deflate_state *s, int flush);
@@ -82,7 +82,7 @@ static block_state deflate_huff   (deflate_state *s, int flush);
 static void lm_init               (deflate_state *s);
 static void putShortMSB           (deflate_state *s, uint16_t b);
 ZLIB_INTERNAL void flush_pending  (z_stream *strm);
-ZLIB_INTERNAL int read_buf        (z_stream *strm, unsigned char *buf, unsigned size);
+ZLIB_INTERNAL unsigned read_buf   (z_stream *strm, unsigned char *buf, unsigned size);
 
 extern void crc_reset(deflate_state *const s);
 #ifdef X86_PCLMULQDQ_CRC
@@ -166,8 +166,7 @@ static const config configuration_table[10] = {
  * bit values at the expense of memory usage). We slide even when level == 0 to
  * keep the hash table consistent if we switch back to level > 0 later.
  */
-static void slide_hash(deflate_state *s)
-{
+static void slide_hash(deflate_state *s) {
     unsigned n, m;
     Pos *p;
     unsigned int wsize = s->w_size;
@@ -262,16 +261,16 @@ int ZEXPORT deflateInit2_(z_stream *strm, int level, int method, int windowBits,
 
     s->wrap = wrap;
     s->gzhead = NULL;
-    s->w_bits = windowBits;
+    s->w_bits = (unsigned int)windowBits;
     s->w_size = 1 << s->w_bits;
     s->w_mask = s->w_size - 1;
 
 #ifdef X86_SSE4_2_CRC_HASH
     if (x86_cpu_has_sse42)
-        s->hash_bits = 15;
+        s->hash_bits = (unsigned int)15;
     else
 #endif
-        s->hash_bits = memLevel + 7;
+        s->hash_bits = (unsigned int)memLevel + 7;
 
     s->hash_size = 1 << s->hash_bits;
     s->hash_mask = s->hash_size - 1;
@@ -314,8 +313,7 @@ int ZEXPORT deflateInit2_(z_stream *strm, int level, int method, int windowBits,
 /* =========================================================================
  * Check for a valid deflate stream state. Return 0 if ok, 1 if not.
  */
-static int deflateStateCheck (z_stream *strm)
-{
+static int deflateStateCheck (z_stream *strm) {
     deflate_state *s;
     if (strm == NULL ||
         strm->zalloc == (alloc_func)0 || strm->zfree == (free_func)0)
@@ -396,11 +394,12 @@ int ZEXPORT deflateSetDictionary(z_stream *strm, const unsigned char *dictionary
 /* ========================================================================= */
 int ZEXPORT deflateGetDictionary (z_stream *strm, unsigned char *dictionary, unsigned int  *dictLength) {
     deflate_state *s;
+    unsigned int len;
 
     if (deflateStateCheck(strm))
         return Z_STREAM_ERROR;
     s = strm->state;
-    unsigned int len = s->strstart + s->lookahead;
+    len = s->strstart + s->lookahead;
     if (len > s->w_size)
         len = s->w_size;
     if (dictionary != NULL && len)
@@ -516,8 +515,7 @@ int ZEXPORT deflateParams(z_stream *strm, int level, int strategy) {
     }
     func = configuration_table[s->level].func;
 
-    if ((strategy != s->strategy || func != configuration_table[level].func) &&
-        s->high_water) {
+    if ((strategy != s->strategy || func != configuration_table[level].func) && s->high_water) {
         /* Flush the last buffer: */
         int err = deflate(strm, Z_BLOCK);
         if (err == Z_STREAM_ERROR)
@@ -527,9 +525,9 @@ int ZEXPORT deflateParams(z_stream *strm, int level, int strategy) {
     }
     if (s->level != level) {
         if (s->level == 0 && s->matches != 0) {
-            if (s->matches == 1)
+            if (s->matches == 1) {
                 slide_hash(s);
-            else {
+            } else {
                 CLEAR_HASH(s);
             }
             s->matches = 0;
@@ -551,10 +549,10 @@ int ZEXPORT deflateTune(z_stream *strm, int good_length, int max_lazy, int nice_
     if (deflateStateCheck(strm))
         return Z_STREAM_ERROR;
     s = strm->state;
-    s->good_match = good_length;
-    s->max_lazy_match = max_lazy;
+    s->good_match = (unsigned int)good_length;
+    s->max_lazy_match = (unsigned int)max_lazy;
     s->nice_match = nice_length;
-    s->max_chain_length = max_chain;
+    s->max_chain_length = (unsigned int)max_chain;
     return Z_OK;
 }
 
@@ -813,7 +811,7 @@ int ZEXPORT deflate(z_stream *strm, int flush) {
         }
     }
     if (s->status == EXTRA_STATE) {
-        if (s->gzhead->extra != Z_NULL) {
+        if (s->gzhead->extra != NULL) {
             uint32_t beg = s->pending;   /* start of bytes to update crc */
             uint32_t left = (s->gzhead->extra_len & 0xffff) - s->gzindex;
 
@@ -1075,7 +1073,7 @@ int ZEXPORT deflateCopy(z_stream *dest, z_stream *source) {
  * allocating a large strm->next_in buffer and copying from it.
  * (See also flush_pending()).
  */
-ZLIB_INTERNAL int read_buf(z_stream *strm, unsigned char *buf, unsigned size) {
+ZLIB_INTERNAL unsigned read_buf(z_stream *strm, unsigned char *buf, unsigned size) {
     uint32_t len = strm->avail_in;
 
     if (len > size)
@@ -1098,7 +1096,7 @@ ZLIB_INTERNAL int read_buf(z_stream *strm, unsigned char *buf, unsigned size) {
     strm->next_in  += len;
     strm->total_in += len;
 
-    return (int)len;
+    return len;
 }
 
 /* ===========================================================================
@@ -1202,6 +1200,7 @@ void fill_window_c(deflate_state *s) {
             s->match_start -= wsize;
             s->strstart    -= wsize; /* we now have strstart >= MAX_DIST */
             s->block_start -= (long) wsize;
+
             slide_hash(s);
             more += wsize;
         }
@@ -1274,7 +1273,7 @@ void fill_window_c(deflate_state *s) {
      * routines allow scanning to strstart + MAX_MATCH, ignoring lookahead.
      */
     if (s->high_water < s->window_size) {
-        unsigned long curr = s->strstart + (unsigned long)s->lookahead;
+        unsigned long curr = s->strstart + (unsigned long)(s->lookahead);
         unsigned long init;
 
         if (s->high_water < curr) {
@@ -1303,12 +1302,6 @@ void fill_window_c(deflate_state *s) {
     Assert((unsigned long)s->strstart <= s->window_size - MIN_LOOKAHEAD,
            "not enough room for search");
 }
-
-/* Maximum stored block length in deflate format (not including header). */
-#define MAX_STORED 65535
-
-/* Minimum of a and b. */
-#define MIN(a, b) ((a) > (b) ? (b) : (a))
 
 /* ===========================================================================
  * Copy without compression as much as possible from the input stream, return
@@ -1451,7 +1444,7 @@ static block_state deflate_stored(deflate_state *s, int flush) {
 
     /* Fill the window with any remaining input. */
     have = s->window_size - s->strstart - 1;
-    if (s->strm->avail_in > have && s->block_start >= (long) s->w_size) {
+    if (s->strm->avail_in > have && s->block_start >= (long)s->w_size) {
         /* Slide the window down. */
         s->block_start -= s->w_size;
         s->strstart -= s->w_size;
@@ -1532,7 +1525,7 @@ static block_state deflate_rle(deflate_state *s, int flush) {
                          prev == *++scan && prev == *++scan &&
                          prev == *++scan && prev == *++scan &&
                          scan < strend);
-                s->match_length = MAX_MATCH - (int)(strend - scan);
+                s->match_length = MAX_MATCH - (unsigned int)(strend - scan);
                 if (s->match_length > s->lookahead)
                     s->match_length = s->lookahead;
             }

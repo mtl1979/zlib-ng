@@ -322,6 +322,7 @@ else()
     add_definitions(-DX86 -DUNALIGNED_OK -DUNROLL_LESS)
     add_feature_info(SSE2 1 "Support the SSE2 instruction set, using \"${SSE2FLAG}\"")
 endif()
+
 if("${ARCHDIR}" MATCHES "arch/x86" AND WITH_OPTIM)
     add_definitions("-DX86_CPUID")
     set(ZLIB_ARCH_SRCS ${ZLIB_ARCH_SRCS} ${ARCHDIR}/x86.c)

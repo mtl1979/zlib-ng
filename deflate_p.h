@@ -82,4 +82,10 @@ static inline Pos insert_string(deflate_state *const s, const Pos str, unsigned 
     if (s->strm->avail_out == 0) return (last) ? finish_started : need_more; \
 }
 
+/* Maximum stored block length in deflate format (not including header). */
+#define MAX_STORED 65535
+
+/* Minimum of a and b. */
+#define MIN(a, b) ((a) > (b) ? (b) : (a))
+
 #endif
