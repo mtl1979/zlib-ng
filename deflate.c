@@ -1296,9 +1296,10 @@ void fill_window_c(deflate_state *s) {
              * plus WIN_INIT -- zero out to current data plus WIN_INIT, or up
              * to end of window, whichever is less.
              */
-            init = (unsigned long)curr + WIN_INIT - s->high_water;
-            if (init > s->window_size - s->high_water)
-                init = s->window_size - s->high_water;
+            init = (unsigned long)curr + WIN_INIT;
+            if (init > s->window_size)
+                init = s->window_size;
+            init -= s->high_water;
             memset(s->window + s->high_water, 0, (unsigned)init);
             s->high_water += init;
         }
