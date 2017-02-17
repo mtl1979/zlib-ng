@@ -12,6 +12,7 @@
 
 #include <immintrin.h>
 #include "deflate.h"
+#include "deflate_p.h"
 
 extern int read_buf(z_stream *strm, unsigned char *buf, unsigned size);
 
@@ -105,22 +106,7 @@ ZLIB_INTERNAL void fill_window_sse(deflate_state *s) {
 
         /* Initialize the hash value now that we have some input: */
         if (s->lookahead + s->insert >= MIN_MATCH) {
-            unsigned int str = s->strstart - s->insert;
-            s->ins_h = s->window[str];
-            if (str >= 1)
-                UPDATE_HASH(s, s->ins_h, str + 1 - (MIN_MATCH-1));
-#if MIN_MATCH != 3
-            Call UPDATE_HASH() MIN_MATCH-3 more times
-#endif
-            while (s->insert) {
-                UPDATE_HASH(s, s->ins_h, str);
-                s->prev[str & s->w_mask] = s->head[s->ins_h];
-                s->head[s->ins_h] = (Pos)str;
-                str++;
-                s->insert--;
-                if (s->lookahead + s->insert < MIN_MATCH)
-                    break;
-            }
+            fill_internal(s);
         }
         /* If the whole input has less than MIN_MATCH bytes, ins_h is garbage,
          * but this is not important since only literal bytes will be emitted.
