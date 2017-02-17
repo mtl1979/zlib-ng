@@ -82,6 +82,25 @@ static inline Pos insert_string(deflate_state *const s, const Pos str, unsigned 
     if (s->strm->avail_out == 0) return (last) ? finish_started : need_more; \
 }
 
+static inline void fill_internal(deflate_state *s) {
+    unsigned int insert_cnt = s->insert;
+    unsigned int str = s->strstart - insert_cnt;
+    unsigned int slen;
+    s->ins_h = s->window[str];
+    if (unlikely(s->lookahead < MIN_MATCH)) {
+        insert_cnt += s->lookahead - MIN_MATCH;
+    }
+    slen = insert_cnt;
+    if (likely(str >= (MIN_MATCH - 2))) {
+        str += 2 - MIN_MATCH;
+        insert_cnt += MIN_MATCH - 2;
+    }
+    if (likely(insert_cnt > 0)) {
+        insert_string(s, str, insert_cnt);
+        s->insert -= slen;
+    }
+}
+
 /* Maximum stored block length in deflate format (not including header). */
 #define MAX_STORED 65535
 

@@ -106,40 +106,7 @@ ZLIB_INTERNAL void fill_window_sse(deflate_state *s) {
 
         /* Initialize the hash value now that we have some input: */
         if (s->lookahead + s->insert >= MIN_MATCH) {
-            unsigned int str = s->strstart - s->insert;
-            s->ins_h = s->window[str];
-#ifndef NOT_TWEAK_COMPILER
-            {
-                unsigned int insert_cnt = s->insert;
-                unsigned int slen;
-                if (unlikely(s->lookahead < MIN_MATCH))
-                    insert_cnt += s->lookahead - MIN_MATCH;
-                slen = insert_cnt;
-                if (str >= (MIN_MATCH - 2))
-                {
-                    str += 2 - MIN_MATCH;
-                    insert_cnt += MIN_MATCH - 2;
-                }
-                if (insert_cnt > 0)
-                {
-                    insert_string(s, str, insert_cnt);
-                    s->insert -= slen;
-                }
-            }
-#else
-            if (str >= 1)
-                insert_string(s, str + 2 - MIN_MATCH, 1);
-#if MIN_MATCH != 3
-#warning    Call insert_string() MIN_MATCH-3 more times
-#endif
-            while (s->insert) {
-                insert_string(s, str, 1);
-                str++;
-                s->insert--;
-                if (s->lookahead + s->insert < MIN_MATCH)
-                    break;
-            }
-#endif
+            fill_internal(s);
         }
         /* If the whole input has less than MIN_MATCH bytes, ins_h is garbage,
          * but this is not important since only literal bytes will be emitted.
