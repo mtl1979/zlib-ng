@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include "zlib.h"
+#include "zendian.h"
 
 typedef unsigned char uch; /* Included for compatibility with external code only */
 typedef uint16_t ush;      /* Included for compatibility with external code only */
@@ -161,6 +162,28 @@ void ZLIB_INTERNAL   zcfree(void *opaque, void *ptr);
 #define ZFREE(strm, addr)         (*((strm)->zfree))((strm)->opaque, (void *)(addr))
 #define TRY_FREE(s, p) {if (p) ZFREE(s, p);}
 
+/* Reverse the bytes in a 16-bit value. Use compiler intrinsics when
+   possible to take advantage of hardware implementations. */
+#if defined(WIN32) && (_MSC_VER >= 1300)
+#  pragma intrinsic(_byteswap_ushort)
+#  define ZSWAP16(q) _byteswap_ushort(q)
+
+#elif defined(__Clang__) || (defined(__GNUC__) && \
+       (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)))
+#  define ZSWAP16(q) __builtin_bswap16(q)
+
+#elif defined(__GNUC__) && (__GNUC__ >= 2) && defined(__linux__)
+#  include <byteswap.h>
+#  define ZSWAP16(q) bswap_16(q)
+
+#elif defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__DragonFly__)
+#  include <sys/endian.h>
+#  define ZSWAP16(q) bswap16(q)
+
+#else
+#  define ZSWAP16(q) (((q) & 0x00ff) << 8 | ((q) & 0xff00) >> 8)
+#endif /* ZSWAP16 */
+
 /* Reverse the bytes in a 32-bit value. Use compiler intrinsics when
    possible to take advantage of hardware implementations. */
 #if defined(WIN32) && (_MSC_VER >= 1300)
@@ -210,6 +233,14 @@ void ZLIB_INTERNAL   zcfree(void *opaque, void *ptr);
 #if defined(__GNUC__)
 #define ALIGNED_(x) __attribute__ ((aligned(x)))
 #endif
+#endif
+
+#if BYTE_ORDER == BIG_ENDIAN
+# define ZSHORT_TO_BIG(i) (i)
+# define ZINT_TO_BIG(i)   (i)
+#else
+# define ZSHORT_TO_BIG(i) ZSWAP16(i)
+# define ZINT_TO_BIG(i)   ZSWAP32(i)
 #endif
 
 #endif /* ZUTIL_H_ */

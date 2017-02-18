@@ -328,6 +328,20 @@ typedef enum {
 }
 #endif
 
+#ifdef UNALIGNED_OK
+#define put_int(s, i) { \
+    *(uint32_t*)(&s->pending_buf[s->pending]) = (i) ; \
+    s->pending += 4; \
+}
+#else
+#define put_int(s, i) { \
+    put_byte(s, (unsigned char)((i) & 0xff)); \
+    put_byte(s, (unsigned char)(((i) >> 8) & 0xff)); \
+    put_byte(s, (unsigned char)(((i) >> 16) & 0xff)); \
+    put_byte(s, (unsigned char)(((i) >> 24) & 0xff)); \
+}
+#endif
+
 #define MIN_LOOKAHEAD (MAX_MATCH+MIN_MATCH+1)
 /* Minimum amount of lookahead, except at the end of the input file.
  * See deflate.c for comments about the MIN_MATCH+1.
