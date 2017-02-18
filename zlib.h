@@ -787,7 +787,7 @@ ZEXTERN int ZEXPORT deflatePrime(z_stream *strm, int bits, int value);
    source stream state was inconsistent.
 */
 
-ZEXTERN int ZEXPORT deflateSetHeader(z_stream *strm, gz_headerp head);
+ZEXTERN int ZEXPORT deflateSetHeader(z_stream *strm, gz_header *head);
 /*
      deflateSetHeader() provides gzip header information for when a gzip
    stream is requested by deflateInit2().  deflateSetHeader() may be called
@@ -1000,7 +1000,7 @@ ZEXTERN long ZEXPORT inflateMark(z_stream *strm);
    source stream state was inconsistent.
 */
 
-ZEXTERN int ZEXPORT inflateGetHeader(z_stream *strm, gz_headerp head);
+ZEXTERN int ZEXPORT inflateGetHeader(z_stream *strm, gz_header *head);
 /*
      inflateGetHeader() requests that gzip header information be stored in the
    provided gz_header structure.  inflateGetHeader() may be called after

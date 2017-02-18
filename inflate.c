@@ -1302,7 +1302,7 @@ int ZEXPORT inflateSetDictionary(z_stream *strm, const unsigned char *dictionary
     return Z_OK;
 }
 
-int ZEXPORT inflateGetHeader(z_stream *strm, gz_headerp head) {
+int ZEXPORT inflateGetHeader(z_stream *strm, gz_header *head) {
     struct inflate_state *state;
 
     /* check state */

@@ -460,7 +460,7 @@ int ZEXPORT deflateReset(z_stream *strm) {
 }
 
 /* ========================================================================= */
-int ZEXPORT deflateSetHeader(z_stream *strm, gz_headerp head) {
+int ZEXPORT deflateSetHeader(z_stream *strm, gz_header *head) {
     if (deflateStateCheck(strm) || strm->state->wrap != 2)
         return Z_STREAM_ERROR;
     strm->state->gzhead = head;

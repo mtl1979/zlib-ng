@@ -110,7 +110,7 @@ typedef struct internal_state {
     unsigned char *pending_out;      /* next pending byte to output to the stream */
     uint32_t      pending;           /* nb of bytes in the pending buffer */
     int           wrap;              /* bit 0 true for zlib, bit 1 true for gzip */
-    gz_headerp    gzhead;            /* gzip header information to write */
+    gz_header    *gzhead;            /* gzip header information to write */
     uint32_t      gzindex;           /* where in extra, name, or comment */
     unsigned char method;            /* can only be DEFLATED */
     int           last_flush;        /* value of flush param for previous deflate call */
