@@ -422,21 +422,17 @@ static int updatewindow(z_stream *strm, const unsigned char *end, uint32_t copy)
 /* check macros for header crc */
 #ifdef GUNZIP
 #  define CRC2(check, word) \
-    do { \
-        hbuf[0] = (unsigned char)(word); \
-        hbuf[1] = (unsigned char)((word) >> 8); \
-        check = crc32(check, hbuf, 2); \
-    } while (0)
+     do { \
+       hbuf.s[0] = ZSHORT_TO_LITTLE(word); \
+       check = crc32(check, hbuf.uc, 2); \
+     } while (0)
 
 #  define CRC4(check, word) \
-    do { \
-        hbuf[0] = (unsigned char)(word); \
-        hbuf[1] = (unsigned char)((word) >> 8); \
-        hbuf[2] = (unsigned char)((word) >> 16); \
-        hbuf[3] = (unsigned char)((word) >> 24); \
-        check = crc32(check, hbuf, 4); \
-    } while (0)
-#endif
+     do { \
+       hbuf.i = ZINT_TO_LITTLE(word); \
+       check = crc32(check, hbuf.uc, 4); \
+     } while (0)
+#endif /* GUNZIP */
 
 /* Load registers with state in inflate() for speed */
 #define LOAD() \
@@ -600,7 +596,12 @@ int ZEXPORT inflate(z_stream *strm, int flush) {
     unsigned len;               /* length to copy for repeats, bits to drop */
     int ret;                    /* return code */
 #ifdef GUNZIP
-    unsigned char hbuf[4];      /* buffer for gzip header crc calculation */
+/* This hack avoids violating strict anti-aliasing rules */
+    union {
+      unsigned char uc[4];
+      uint16_t s[2];
+      uint32_t i;
+    } hbuf;                     /* buffer for gzip header crc calculation */
 #endif
     static const uint16_t order[19] = /* permutation of code lengths */
         {16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15};

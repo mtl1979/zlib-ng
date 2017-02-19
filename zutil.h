@@ -236,11 +236,15 @@ void ZLIB_INTERNAL   zcfree(void *opaque, void *ptr);
 #endif
 
 #if BYTE_ORDER == BIG_ENDIAN
-# define ZSHORT_TO_BIG(i) (i)
-# define ZINT_TO_BIG(i)   (i)
+# define ZSHORT_TO_BIG(i)    (i)
+# define ZINT_TO_BIG(i)      (i)
+# define ZSHORT_TO_LITTLE(i) ZSWAP16(i)
+# define ZINT_TO_LITTLE(i)   ZSWAP32(i)
 #else
-# define ZSHORT_TO_BIG(i) ZSWAP16(i)
-# define ZINT_TO_BIG(i)   ZSWAP32(i)
+# define ZSHORT_TO_BIG(i)    ZSWAP16(i)
+# define ZINT_TO_BIG(i)      ZSWAP32(i)
+# define ZSHORT_TO_LITTLE(i) (i)
+# define ZINT_TO_LITTLE(i)   (i)
 #endif
 
 #endif /* ZUTIL_H_ */
