@@ -37,20 +37,24 @@ extern Pos insert_string_sse(deflate_state *const s, const Pos str, unsigned int
 #endif
 
 static inline Pos insert_string_c(deflate_state *const s, const Pos str, unsigned int count) {
-    Pos ret = 0;
-    unsigned int idx;
+    Pos p, lp;
     unsigned int h = s->ins_h;
 
-    for (idx = 0; idx < count; idx++) {
-        UPDATE_HASH(s, h, str+idx);
-        if (s->head[h] != str+idx) {
-            s->prev[(str+idx) & s->w_mask] = s->head[h];
-            s->head[h] = str+idx;
+    if (unlikely(count == 0)) {
+        return s->prev[str & s->w_mask];
+    }
+
+    lp = str + count - 1; /* last position */
+
+    for (p = str; p <= lp; p++) {
+        UPDATE_HASH(s, h, p);
+        if (s->head[h] != p) {
+            s->prev[p & s->w_mask] = s->head[h];
+            s->head[h] = p;
         }
     }
     s->ins_h = h;
-    ret = s->prev[(str+count-1) & s->w_mask];
-    return ret;
+    return s->prev[lp & s->w_mask];
 }
 
 static inline Pos insert_string(deflate_state *const s, const Pos str, unsigned int count) {
