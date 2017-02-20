@@ -17,21 +17,28 @@
  */
 #ifdef X86_SSE4_2_CRC_HASH
 Pos insert_string_sse(deflate_state *const s, const Pos str, unsigned int count) {
-    Pos ret = 0;
-    unsigned int idx;
-    unsigned *ip, val, h;
+    Pos p, lp;
 
-    for (idx = 0; idx < count; idx++) {
-        ip = (unsigned *)&s->window[str+idx];
+    if (unlikely(count == 0)) {
+        return s->prev[str & s->w_mask];
+    }
+
+    lp = str + count - 1; /* last position */
+
+    for (p = str; p <= lp; p++) {
+        unsigned *ip, val, h, hm;
+
+        ip = (unsigned *)&s->window[p];
         val = *ip;
-        h = 0;
 
         if (s->level >= TRIGGER_LEVEL)
             val &= 0xFFFFFF;
 
 #ifdef _MSC_VER
-        h = _mm_crc32_u32(h, val);
+        h = _mm_crc32_u32(0, val);
 #else
+        h = 0;
+
         __asm__ __volatile__ (
             "crc32 %1,%0\n\t"
             : "+r" (h)
@@ -39,12 +46,13 @@ Pos insert_string_sse(deflate_state *const s, const Pos str, unsigned int count)
         );
 #endif
 
-        if (s->head[h & s->hash_mask] != str+idx) {
-            s->prev[(str+idx) & s->w_mask] = s->head[h & s->hash_mask];
-            s->head[h & s->hash_mask] = str+idx;
+        hm = h & s->hash_mask; /* masked hash value */
+
+        if (s->head[hm] != p) {
+            s->prev[p & s->w_mask] = s->head[hm];
+            s->head[hm] = p;
         }
     }
-    ret = s->prev[(str+count-1) & s->w_mask];
-    return ret;
+    return s->prev[lp & s->w_mask];
 }
 #endif
