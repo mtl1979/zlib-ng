@@ -250,17 +250,50 @@ if test "$gcc" -eq 1 && ($cc $CFLAGS -c $test.c) >> configure.log 2>&1; then
       if test "${uname}" = "eabi"; then
         uname=arm
       fi
-      if test $buildacle -eq 1; then
-        if test $native -eq 0; then
-          ARCH=armv8-a+crc
+      ARCH=$GCC_ARCH
+      if test $native -eq 0; then
+        if test $buildacle -eq 1; then
+          ARM_ARCH=armv8-a+crc
         else
-          ARCH=native
+          ARM_ARCH=$GCC_ARCH
         fi
-      fi ;;
+        acleflag="-march=${ARM_ARCH}"
+      else
+        ARM_ARCH=native
+        acleflag=""
+      fi
+      neonflag="-mfpu=neon"
+      ;;
     aarch64)
       if test "${uname}" = "elf"; then
         uname=aarch64
-      fi ;;
+      fi
+      ARCH=$GCC_ARCH
+      if test $native -eq 0; then
+        if test $buildacle -eq 1; then
+          if test $buildneon -eq 1; then
+            ARM_ARCH=armv8-a+crc+simd
+            neonflag="-march=${ARM_ARCH}"
+          else
+            ARM_ARCH=armv8-a+crc
+            neonflag=""
+          fi
+          acleflag="-march=${ARM_ARCH}"
+        elif test $buildneon -eq 1; then
+          ARM_ARCH=armv8-a+simd
+          acleflag=""
+          neonflag="-march=${ARM_ARCH}"
+        else
+          ARM_ARCH=$GCC_ARCH
+          acleflag=""
+          neonflag=""
+        fi
+      else
+        ARM_ARCH=native
+        acleflag=""
+        neonflag=""
+      fi
+      ;;
   esac
   CFLAGS="${CFLAGS--O3}"
   if test -n "${ARCHS}"; then
@@ -751,6 +784,49 @@ else
     HAVE_PCLMULQDQ_INTRIN=0
 fi
 
+# start of arm specific
+case $ARCH in
+    arm* | aarch64)
+    # Check for ACLE intrinsics
+    cat > $test.c << EOF
+#include <arm_acle.h>
+int main(void)
+{
+    char c[4];
+    int i;
+    i = __crc32b(i, c);
+    return i;
+}
+EOF
+    if try ${CC} ${CFLAGS} ${acleflag} $test.c; then
+        echo "Checking for ARM ACLE intrinsics ... Yes." | tee -a configure.log
+        HAVE_ACLE_INTRIN=1
+    else
+        echo "Checking for ARM ACLE intrinsics ... No." | tee -a configure.log
+        HAVE_ACLE_INTRIN=0
+    fi
+
+    # Check for NEON intrinsics
+    cat > $test.c << EOF
+#include <arm_neon.h>
+int main(void)
+{
+    static float32x4_t A[2], SUMM;
+    SUMM = vmlaq_f32(SUMM, A[0], A[1]);
+    return 0;
+}
+EOF
+    if try ${CC} ${CFLAGS} ${neonflag} $test.c; then
+        echo "Checking for ARM NEON intrinsics ... Yes." | tee -a configure.log
+        HAVE_NEON_INTRIN=1
+    else
+        echo "Checking for ARM NEON intrinsics ... No." | tee -a configure.log
+        HAVE_NEON_INTRIN=0
+    fi
+    ;;
+esac
+# END of arm specific
+
 # Enable deflate_medium at level 4-6
 if test $without_new_strategies -eq 0; then
     CFLAGS="${CFLAGS} -DMEDIUM_STRATEGY"
@@ -821,7 +897,7 @@ case "${ARCH}" in
     ;;
 
     # ARM specific optimizations
-    arm | armv[3467]l | armv4b | armv4tl | armv5tel | armv5tejl | armv[67]hl | armv7hnl | armv[78]-a | armv8-a+* | armv8.[12]-a)
+    arm | armv[3467]l | armv4b | armv4tl | armv5tel | armv5tejl | armv[67]hl | armv7hnl | armv[78]-a | armv8-a+* | armv8.[12]-a | armv8.2-a+*)
         ARCHDIR=arch/arm
         ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS} fill_window_arm.o"
         ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} fill_window_arm.lo"
@@ -834,7 +910,7 @@ case "${ARCH}" in
                 floatabi="-mfloat-abi=softfp" ;;
         esac
 
-        case "${ARCH}" in
+        case "${ARM_ARCH}" in
             armv6l | armv6hl)
                 # Tests done on Raspberry pi (armv6hl) indicate that UNALIGNED_OK and UNROLL_LESS both
                 # provide performance improvements, totaling about 1.5% for the two.
@@ -845,24 +921,44 @@ case "${ARCH}" in
                 CFLAGS="${CFLAGS} -DUNALIGNED_OK -DUNROLL_LESS"
                 SFLAGS="${SFLAGS} -DUNALIGNED_OK -DUNROLL_LESS"
 
-                if test $buildneon -eq 1; then
-                    CFLAGS="${CFLAGS} ${floatabi} -mfpu=neon"
-                    SFLAGS="${SFLAGS} ${floatabi} -mfpu=neon"
+                if test $buildneon -eq 1 && test $HAVE_NEON_INTRIN -eq 1; then
+                    CFLAGS="${CFLAGS} ${floatabi} ${neonflag} -DHAVE_ARM_NEON -DARM_NEON_ADLER32"
+                    SFLAGS="${SFLAGS} ${floatabi} ${neonflag} -DHAVE_ARM_NEON -DARM_NEON_ADLER32"
 
                     ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS} adler32_neon.o"
                     ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} adler32_neon.lo"
                 fi
             ;;
-            armv8-a+crc | armv8-a+crc+simd | armv8.[12]-a)
-                CFLAGS="-march=${ARCH} ${CFLAGS} -DARM_ACLE_CRC_HASH -DUNALIGNED_OK -DUNROLL_LESS"
-                SFLAGS="-march=${ARCH} ${SFLAGS} -DARM_ACLE_CRC_HASH -DUNALIGNED_OK -DUNROLL_LESS"
+            armv8-a+crc | armv8-a+crc+simd | armv8.[12]-a | armv8.2-a+*)
+                CFLAGS="${acleflag} ${CFLAGS} -DARM_ACLE_CRC_HASH -DUNALIGNED_OK -DUNROLL_LESS"
+                SFLAGS="${acleflag} ${SFLAGS} -DARM_ACLE_CRC_HASH -DUNALIGNED_OK -DUNROLL_LESS"
 
                 ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS} crc32_acle.o insert_string_acle.o"
                 ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} crc32_acle.lo insert_string_acle.lo"
 
-                if test $buildneon -eq 1; then
-                    CFLAGS="${CFLAGS} ${floatabi} -mfpu=neon"
-                    SFLAGS="${SFLAGS} ${floatabi} -mfpu=neon"
+                if test $buildneon -eq 1 && test $HAVE_NEON_INTRIN -eq 1; then
+                    CFLAGS="${CFLAGS} ${floatabi} ${neonflag} -DHAVE_ARM_NEON -DARM_NEON_ADLER32"
+                    SFLAGS="${SFLAGS} ${floatabi} ${neonflag} -DHAVE_ARM_NEON -DARM_NEON_ADLER32"
+
+                    ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS} adler32_neon.o"
+                    ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} adler32_neon.lo"
+                fi
+            ;;
+            native)
+                CFLAGS="${CFLAGS} -DUNALIGNED_OK -DUNROLL_LESS"
+                SFLAGS="${SFLAGS} -DUNALIGNED_OK -DUNROLL_LESS"
+
+                if test $HAVE_ACLE_INTRIN -eq 1; then
+                    CFLAGS="${CFLAGS} -DARM_ACLE_CRC_HASH"
+                    SFLAGS="${SFLAGS} -DARM_ACLE_CRC_HASH"
+
+                    ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS} crc32_acle.o insert_string_acle.o"
+                    ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} crc32_acle.lo insert_string_acle.lo"
+                fi
+
+                if test $HAVE_NEON_INTRIN -eq 1; then
+                    CFLAGS="${CFLAGS} ${floatabi} ${neonflag} -DHAVE_ARM_NEON -DARM_NEON_ADLER32"
+                    SFLAGS="${SFLAGS} ${floatabi} ${neonflag} -DHAVE_ARM_NEON -DARM_NEON_ADLER32"
 
                     ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS} adler32_neon.o"
                     ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} adler32_neon.lo"
@@ -877,29 +973,25 @@ case "${ARCH}" in
         ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS} fill_window_arm.o"
         ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} fill_window_arm.lo"
 
-        if test $native -eq 0; then
-          ARCH="armv8-a"
-        else
-          ARCH="native"
-        fi
-        if test $buildacle -eq 1; then
-           if test $native -eq 0; then
-             ARCH="${ARCH}+crc"
-           fi
+        CFLAGS="${CFLAGS} -DUNALIGNED_OK -DUNROLL_LESS"
+        SFLAGS="${SFLAGS} -DUNALIGNED_OK -DUNROLL_LESS"
+
+        if test $buildacle -eq 1 && test $HAVE_ACLE_INTRIN -eq 1; then
             CFLAGS="${CFLAGS} -DARM_ACLE_CRC_HASH"
             SFLAGS="${SFLAGS} -DARM_ACLE_CRC_HASH"
             ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS} crc32_acle.o insert_string_acle.o"
             ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} crc32_acle.lo insert_string_acle.lo"
         fi
-        if test $buildneon -eq 1; then
-            if test $native -eq 0; then
-                ARCH="${ARCH}+simd"
-            fi
+        if test $buildneon -eq 1 && test $HAVE_NEON_INTRIN -eq 1; then
+            CFLAGS="${CFLAGS} -DHAVE_ARM_NEON -DARM_NEON_ADLER32"
+            SFLAGS="${SFLAGS} -DHAVE_ARM_NEON -DARM_NEON_ADLER32"
             ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS} adler32_neon.o"
             ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} adler32_neon.lo"
         fi
-        CFLAGS="-march=${ARCH} ${CFLAGS} -DUNALIGNED_OK -DUNROLL_LESS"
-        SFLAGS="-march=${ARCH} ${SFLAGS} -DUNALIGNED_OK -DUNROLL_LESS"
+        if test $native -eq 0 && test $ARM_ARCH != "aarch64"; then
+            CFLAGS="-march=${ARM_ARCH} ${CFLAGS}"
+            SFLAGS="-march=${ARM_ARCH} ${SFLAGS}"
+        fi
     ;;
 esac
 
@@ -951,6 +1043,8 @@ echo uname = $uname >> configure.log
 echo sse2flag = $sse2flag >> configure.log
 echo sse4flag = $sse4flag >> configure.log
 echo pclmulflag = $pclmulflag >> configure.log
+echo acleflag = $acleflag >> configure.log
+echo neonflag = $neonflag >> configure.log
 echo ARCHDIR = ${ARCHDIR} >> configure.log
 echo ARCH_STATIC_OBJS = ${ARCH_STATIC_OBJS} >> configure.log
 echo ARCH_SHARED_OBJS = ${ARCH_SHARED_OBJS} >> configure.log

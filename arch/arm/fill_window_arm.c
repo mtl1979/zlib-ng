@@ -16,7 +16,7 @@
 
 extern ZLIB_INTERNAL int read_buf(z_stream *strm, unsigned char *buf, unsigned size);
 
-#if __ARM_NEON__
+#ifdef HAVE_ARM_NEON
 #include <arm_neon.h>
 
 /* SIMD version of hash_chain rebase */
