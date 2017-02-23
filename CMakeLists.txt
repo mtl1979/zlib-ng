@@ -40,7 +40,17 @@ check_include_file(stddef.h    HAVE_STDDEF_H)
 #
 # Options parsing
 #
+option (USE_32BIT "Compile as 32-bit version" OFF)
 set(ARCH ${CMAKE_SYSTEM_PROCESSOR})
+
+if (USE_32BIT)
+    if("${ARCH}" MATCHES "x86_64" OR "${ARCH}" MATCHES "AMD64")
+        set(ARCH "i686")
+    elseif("${ARCH}" MATCHES "aarch64")
+        set(ARCH "armv8-a")
+    endif()
+endif (USE_32BIT)
+
 message(STATUS "Architecture: ${ARCH}")
 
 if (TUNE)
@@ -280,6 +290,16 @@ add_feature_info(WITH_NEW_STRATEGIES WITH_NEW_STRATEGIES "Use new strategies")
 if("${ARCH}" MATCHES "arm" OR "${ARCH}" MATCHES "aarch64")
     add_feature_info(WITH_ACLE WITH_ACLE "Build with ACLE CRC")
     add_feature_info(WITH_NEON WITH_NEON "Build with NEON intrinsics")
+endif()
+if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "x86_64" OR "${CMAKE_SYSTEM_PROCESSOR}" MATCHES "AMD64")
+    if (__GNUC__ AND USE_32BIT)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -m32")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -m32")
+    endif()
+    add_feature_info(USE_32BIT USE_32BIT "Build 32-bit version.")
+elseif("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "aarch64")
+    add_feature_info(USE_32BIT USE_32BIT "Build 32-bit version.")
 endif()
 
 #

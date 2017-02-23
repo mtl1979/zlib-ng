@@ -17,6 +17,7 @@ env:
   - BUILDDIR=. TOOL="cmake -DWITH_NATIVE_INSTRUCTIONS=on ."
   - BUILDDIR=. TOOL="cmake -DZLIB_COMPAT=on ."
   - BUILDDIR=. TOOL="cmake -DZLIB_COMPAT=on -DWITH_OPTIM=off -DWITH_NEW_STRATEGIES=off ."
+  - BUILDDIR=. TOOL="cmake -DUSE_32BIT=on -DWITH_OPTIM=off"
   - BUILDDIR=../build TOOL="cmake ../zlib-ng"
 script: mkdir -p $BUILDDIR && cd $BUILDDIR &&
         $TOOL && make && make test
