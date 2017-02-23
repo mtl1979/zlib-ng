@@ -108,6 +108,7 @@ build32=0
 build64=0
 buildacle=0
 buildneon=0
+floatabi=
 native=0
 sse2flag="-msse2"
 sse3flag="-msse3"
@@ -1118,6 +1119,14 @@ case "${ARCH}" in
 	ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS} fill_window_arm.o"
 	ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} fill_window_arm.lo"
 
+        GCC_MACHINE=$(${CC} -dumpmachine)
+        case "${GCC_MACHINE}" in
+            *gnueabihf)
+                floatabi="-mfloat-abi=hard" ;;
+            *gnueabi)
+                floatabi="-mfloat-abi=softfp" ;;
+        esac
+
         case "${ARCH}" in
             armv6l | armv6hl)
                 # Tests done on Raspberry pi (armv6hl) indicate that UNALIGNED_OK and UNROLL_LESS both
@@ -1130,8 +1139,8 @@ case "${ARCH}" in
                 SFLAGS="${SFLAGS} -DUNALIGNED_OK -DUNROLL_LESS"
 
                 if test $buildneon -eq 1; then
-                    CFLAGS="${CFLAGS} -mfloat-abi=softfp -mfpu=neon"
-                    SFLAGS="${SFLAGS} -mfloat-abi=softfp -mfpu=neon"
+                    CFLAGS="${CFLAGS} ${floatabi} -mfpu=neon"
+                    SFLAGS="${SFLAGS} ${floatabi} -mfpu=neon"
 
                     ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS} adler32_neon.o"
                     ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} adler32_neon.lo"
@@ -1145,8 +1154,8 @@ case "${ARCH}" in
                 ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} crc32_acle.lo insert_string_acle.lo"
 
                 if test $buildneon -eq 1; then
-                    CFLAGS="${CFLAGS} -mfloat-abi=softfp -mfpu=neon"
-                    SFLAGS="${SFLAGS} -mfloat-abi=softfp -mfpu=neon"
+                    CFLAGS="${CFLAGS} ${floatabi} -mfpu=neon"
+                    SFLAGS="${SFLAGS} ${floatabi} -mfpu=neon"
 
                     ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS} adler32_neon.o"
                     ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} adler32_neon.lo"
