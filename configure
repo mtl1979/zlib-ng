@@ -237,7 +237,9 @@ if test "$gcc" -eq 1 && ($cc $CFLAGS -c $test.c) >> configure.log 2>&1; then
       fi ;;
 # Honor user choice if gcc is multilib and 32-bit is requested
     x86_64)
-      if test $build32 -ne 1; then
+      if test $build32 -eq 1; then
+        ARCH=i686
+      else
         ARCH=$GCC_ARCH
       fi ;;
   esac
