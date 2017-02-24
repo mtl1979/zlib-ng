@@ -18,6 +18,12 @@ matrix:
       env: BUILDDIR=. TOOL="./configure --zlib-compat --without-optimizations --without-new-strategies"
     - os: linux
       compiler: gcc
+      env: BUILDDIR=. TOOL="./configure --32"
+      install:
+      - sudo apt-get update
+      - sudo apt-get install gcc-multilib
+    - os: linux
+      compiler: gcc
       env: BUILDDIR=. TOOL="cmake ."
     - os: linux
       compiler: gcc
