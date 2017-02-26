@@ -42,12 +42,15 @@ DEFFILE = zlibcompat.def
 all: $(STATICLIB) $(SHAREDLIB) $(IMPLIB) \
      example.exe minigzip.exe example_d.exe minigzip_d.exe
 
-$(STATICLIB): $(OBJS)
+zconf: $(TOP)/zconf.h.in
+     $(CP) $(TOP)\zconf.h.in $(TOP)\zconf.h
+
+$(STATICLIB): zconf $(OBJS)
 	$(AR) $(ARFLAGS) -out:$@ $(OBJS)
 
 $(IMPLIB): $(SHAREDLIB)
 
-$(SHAREDLIB): $(TOP)/win32/zlib.def $(OBJS) zlib1.res
+$(SHAREDLIB): zconf $(TOP)/win32/zlib.def $(OBJS) zlib1.res
 	$(LD) $(LDFLAGS) -def:$(TOP)/win32/$(DEFFILE) -dll -implib:$(IMPLIB) \
 	  -out:$@ -base:0x5A4C0000 $(OBJS) zlib1.res
 	if exist $@.manifest \
@@ -82,8 +85,7 @@ minigzip_d.exe: minigzip.obj $(IMPLIB)
 {$(TOP)/test}.c.obj:
 	$(CC) -c -I$(TOP) $(WFLAGS) $(CFLAGS) $<
 
-$(TOP)/zconf.h: $(TOP)/zconf.h.in
-	$(CP) $(TOP)\zconf.h.in $(TOP)\zconf.h
+$(TOP)/zconf.h: zconf
 
 adler32.obj: $(TOP)/adler32.c $(TOP)/zlib.h $(TOP)/zconf.h
 
