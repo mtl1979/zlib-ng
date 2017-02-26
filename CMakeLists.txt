@@ -70,12 +70,24 @@ if(${CMAKE_C_COMPILER} MATCHES "icc" OR ${CMAKE_C_COMPILER} MATCHES "icpc" OR ${
         if(NOT SSE4FLAG)
             set(SSE4FLAG "-msse4.2")
         endif()
+        if(NOT AVXFLAG)
+            set(AVXFLAG "-mavx")
+        endif()
+        if(NOT AVX2FLAG)
+            set(AVX2FLAG "-mavx2")
+        endif()
     else()
         if(NOT SSE2FLAG)
             set(SSE2FLAG "/arch:SSE2")
         endif()
         if(NOT SSE4FLAG)
             set(SSE4FLAG "/arch:SSE4.2")
+        endif()
+        if(NOT AVXFLAG)
+            set(AVXFLAG "/arch:AVX")
+        endif()
+        if(NOT AVX2FLAG)
+            set(AVX2FLAG "/arch:AVX2")
         endif()
     endif()
 elseif(MSVC)
@@ -117,10 +129,22 @@ else()
                 set(PCLMULFLAG "-mpclmul")
             endif()
         endif()
+        if(NOT AVXFLAG)
+            if(__GNUC__)
+                set(AVXFLAG "-mavx")
+            endif()
+        endif()
+        if(NOT AVX2FLAG)
+            if(__GNUC__)
+                set(AVX2FLAG "-mavx2")
+            endif()
+        endif()
     else(NOT NATIVEFLAG)
         set(SSE2FLAG ${NATIVEFLAG})
         set(SSE4FLAG ${NATIVEFLAG})
         set(PCLMULFLAG ${NATIVEFLAG})
+        set(AVXFLAG ${NATIVEFLAG})
+        set(AVX2FLAG ${NATIVEFLAG})
     endif(NOT NATIVEFLAG)
 endif()
 
@@ -281,6 +305,38 @@ else()
         }"
         HAVE_PCLMULQDQ_INTRIN
     )
+    if(WITH_NATIVE_INSTRUCTIONS)
+        set(CMAKE_REQUIRED_FLAGS "${NATIVEFLAG}")
+    else()
+        set(CMAKE_REQUIRED_FLAGS "${AVXFLAG}")
+    endif()
+    check_c_source_runs(
+        "#include <immintrin.h>
+        int main(void)
+        {
+            __m256i zero = _mm256_setzero_si256();
+            (void)zero;
+            return 0;
+        }"
+        HAVE_AVX_INTRIN
+    )
+    if(WITH_NATIVE_INSTRUCTIONS)
+        set(CMAKE_REQUIRED_FLAGS "${NATIVEFLAG}")
+    else()
+        set(CMAKE_REQUIRED_FLAGS "${AVX2FLAG}")
+    endif()
+    check_c_source_runs(
+        "#include <immintrin.h>
+        int main(void)
+        {
+            __m256i zero = _mm256_setzero_si256();
+            __m256i s = _mm256_subs_epu16(zero, zero);
+            (void)s;
+            return 0;
+        }"
+        HAVE_AVX2_INTRIN
+    )
+
 endif()
 
 #
@@ -355,6 +411,12 @@ if("${ARCHDIR}" MATCHES "arch/x86" AND WITH_OPTIM)
             add_feature_info(PCLMUL_CRC 1 "Support CRC hash generation using PCLMULQDQ, using \"${PCLMULFLAG} ${SSE4FLAG}\"")
             add_intrinsics_option(${SSE4FLAG})
         endif()
+    endif()
+    if(HAVE_AVX2_INTRIN)
+         add_definitions(-DX86_AVX_FILL_WINDOW)
+         set(ZLIB_ARCH_SRCS ${ZLIB_ARCH_SRCS} ${ARCHDIR}/fill_window_avx.c)
+         add_feature_info(AVX_FILL_WINDOW 1 "Support AVX2-accelerated fill_window using \"${AVX2FLAG}\".")
+         add_intrinsics_option(${AVX2FLAG})
     endif()
 endif()
 message(STATUS "Architecture-specific source files: ${ZLIB_ARCH_SRCS}")

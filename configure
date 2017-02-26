@@ -109,6 +109,8 @@ native=0
 sse2flag="-msse2"
 sse4flag="-msse4"
 pclmulflag="-mpclmul"
+avxflag="-mavx"
+avx2flag="-mavx2"
 without_optimizations=0
 without_new_strategies=0
 gcc=0
@@ -739,6 +741,43 @@ else
     HAVE_PCLMULQDQ_INTRIN=0
 fi
 
+# Check for AVX intrinsics
+cat > $test.c << EOF
+#include <immintrin.h>
+int main(void)
+{
+    __m256i zero = _mm256_setzero_si256();
+    (void)zero;
+    return 0;
+}
+EOF
+if try ${CC} ${CFLAGS} ${avxflag} $test.c; then
+    echo "Checking for AVX intrinsics ... Yes." | tee -a configure.log
+    HAVE_AVX_INTRIN=1
+else
+    echo "Checking for AVX intrinsics ... No." | tee -a configure.log
+    HAVE_AVX_INTRIN=0
+fi
+
+# Check for AVX2 intrinsics
+cat > $test.c << EOF
+#include <immintrin.h>
+int main(void)
+{
+    __m256i zero = _mm256_setzero_si256();
+    __m256i s = _mm256_subs_epu16(zero, zero);
+    (void)s;
+    return 0;
+}
+EOF
+if try ${CC} ${CFLAGS} ${avx2flag} $test.c; then
+    echo "Checking for AVX2 intrinsics ... Yes." | tee -a configure.log
+    HAVE_AVX2_INTRIN=1
+else
+    echo "Checking for AVX2 intrinsics ... No." | tee -a configure.log
+    HAVE_AVX2_INTRIN=0
+fi
+
 # Enable deflate_medium at level 4-5
 if test $without_new_strategies -eq 0; then
     CFLAGS="${CFLAGS} -DMEDIUM_STRATEGY"
@@ -783,6 +822,13 @@ case "${ARCH}" in
                 SFLAGS="${SFLAGS} -DX86_SSE2_FILL_WINDOW"
                 ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS} fill_window_sse.o"
                 ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} fill_window_sse.lo"
+            fi
+
+            if test ${HAVE_AVX2_INTRIN} -eq 1; then
+                CFLAGS="${CFLAGS} -DX86_AVX_FILL_WINDOW"
+                SFLAGS="${SFLAGS} -DX86_AVX_FILL_WINDOW"
+                ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS} fill_window_avx.o"
+                ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} fill_window_avx.lo"
             fi
 
             CFLAGS="${CFLAGS} -DX86_SSE4_2_CRC_HASH"
@@ -873,6 +919,8 @@ echo uname = $uname >> configure.log
 echo sse2flag = $sse2flag >> configure.log
 echo sse4flag = $sse4flag >> configure.log
 echo pclmulflag = $pclmulflag >> configure.log
+echo avxflag = $avxflag >> configure.log
+echo avx2flag = $avx2flag >> configure.log
 echo ARCHDIR = ${ARCHDIR} >> configure.log
 echo ARCH_STATIC_OBJS = ${ARCH_STATIC_OBJS} >> configure.log
 echo ARCH_SHARED_OBJS = ${ARCH_SHARED_OBJS} >> configure.log
@@ -943,6 +991,8 @@ sed < $SRCDIR/$ARCHDIR/Makefile.in "
 /^SSE2FLAG *=/s#=.*#=$sse2flag#
 /^SSE4FLAG *=/s#=.*#=$sse4flag#
 /^PCLMULFLAG *=/s#=.*#=$pclmulflag#
+/^AVXFLAG *=/s#=.*#=$avxflag#
+/^AVX2FLAG *=/s#=.*#=$avx2flag#
 " > $ARCHDIR/Makefile
 
 # Generate Makefile in test dir

@@ -321,6 +321,7 @@ zutil.o: $(SRCDIR)/zutil.h $(SRCDIR)/gzguts.h $(SRCDIR)/zlib.h zconf.h
 arch/x86/crc_folding.o: $(SRCDIR)/arch/x86/crc_folding.h $(SRCDIR)/deflate.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
 arch/x86/crc_pclmulqdq.o: $(SRCDIR)/arch/x86/x86.h $(SRCDIR)/arch/x86/crc_folding.h $(SRCDIR)/deflate.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
 arch/x86/deflate_quick.o: $(SRCDIR)/deflate.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
+arch/x86/fill_window_avx.o: $(SRCDIR)/deflate.h $(SRCDIR)/deflate_p.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
 arch/x86/fill_window_sse.o: $(SRCDIR)/deflate.h $(SRCDIR)/deflate_p.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
 arch/x86/x86.o: $(SRCDIR)/arch/x86/x86.h
 
@@ -340,5 +341,6 @@ zutil.lo: $(SRCDIR)/zutil.h $(SRCDIR)/gzguts.h $(SRCDIR)/zlib.h zconf.h
 arch/x86/crc_folding.lo: $(SRCDIR)/arch/x86/crc_folding.h $(SRCDIR)/deflate.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
 arch/x86/crc_pclmulqdq.lo: $(SRCDIR)/arch/x86/x86.h $(SRCDIR)/arch/x86/crc_folding.h $(SRCDIR)/deflate.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
 arch/x86/deflate_quick.lo: $(SRCDIR)/deflate.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
+arch/x86/fill_window_avx.lo: $(SRCDIR)/deflate.h $(SRCDIR)/deflate_p.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
 arch/x86/fill_window_sse.lo: $(SRCDIR)/deflate.h $(SRCDIR)/deflate_p.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
 arch/x86/x86.lo: $(SRCDIR)/arch/x86/x86.h

@@ -1154,12 +1154,20 @@ void check_match(deflate_state *s, IPos start, IPos match, int length) {
  *    performed for at least two bytes (required for the zip translate_eol
  *    option -- not supported here).
  */
+#ifdef X86_AVX_FILL_WINDOW
+extern void fill_window_avx(deflate_state *s);
+#endif
 #ifdef X86_SSE2_FILL_WINDOW
 extern void fill_window_sse(deflate_state *s);
 #endif
 void fill_window_c(deflate_state *s);
 
 void fill_window(deflate_state *s) {
+#ifdef X86_AVX_FILL_WINDOW
+  if (x86_cpu_has_avx2) {
+    fill_window_avx(s);
+  } else {
+#endif
 #ifdef X86_SSE2_FILL_WINDOW
 # ifndef X86_NOCHECK_SSE2
     if (x86_cpu_has_sse2) {
@@ -1173,6 +1181,9 @@ void fill_window(deflate_state *s) {
 
 #else
     fill_window_c(s);
+#endif
+#ifdef X86_AVX_FILL_WINDOW
+  }
 #endif
 }
 

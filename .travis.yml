@@ -2,6 +2,7 @@ language: c
 compiler:
   - gcc
   - clang
+dist: trusty
 install:
   - sudo apt-get update
   - sudo apt-get install gcc-multilib

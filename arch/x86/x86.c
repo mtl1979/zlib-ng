@@ -15,12 +15,23 @@
 #else
 // Newer versions of GCC and clang come with cpuid.h
 #  include <cpuid.h>
+#if (__GNUC__ > 4 || __GNUC__ == 4 && __GNUC_MINOR__ >= 4) ||  defined(__clang__)
+  static inline unsigned long long _xgetbv(unsigned int index) {
+    unsigned int eax, edx;
+    __asm__ __volatile__("xgetbv" : "=a"(eax), "=d"(edx) : "c"(index));
+    return ((unsigned long long)edx << 32) | eax;
+  }
+#else
+#define _xgetbv() 0
+#endif
 #endif
 
 ZLIB_INTERNAL int x86_cpu_has_sse2;
 ZLIB_INTERNAL int x86_cpu_has_sse42;
 ZLIB_INTERNAL int x86_cpu_has_pclmulqdq;
 ZLIB_INTERNAL int x86_cpu_has_tzcnt;
+ZLIB_INTERNAL int x86_cpu_has_avx;
+ZLIB_INTERNAL int x86_cpu_has_avx2;
 
 static void cpuid(int info, unsigned* eax, unsigned* ebx, unsigned* ecx, unsigned* edx) {
 #ifdef _MSC_VER
@@ -44,6 +55,10 @@ static void cpuid(int info, unsigned* eax, unsigned* ebx, unsigned* ecx, unsigne
 #endif
 }
 
+static int avx_enabled() {
+	return _xgetbv(0) & 6;
+}
+
 void ZLIB_INTERNAL x86_check_features(void) {
 	unsigned eax, ebx, ecx, edx;
 	cpuid(1 /*CPU_PROCINFO_AND_FEATUREBITS*/, &eax, &ebx, &ecx, &edx);
@@ -51,8 +66,10 @@ void ZLIB_INTERNAL x86_check_features(void) {
 	x86_cpu_has_sse2 = edx & 0x4000000;
 	x86_cpu_has_sse42 = ecx & 0x100000;
 	x86_cpu_has_pclmulqdq = ecx & 0x2;
+	x86_cpu_has_avx = (ecx & 0x18000000) && avx_enabled();
 
 	cpuid(7, &eax, &ebx, &ecx, &edx);
 
+	x86_cpu_has_avx2 = ebx & 0x20;
 	x86_cpu_has_tzcnt = ecx & 0x8;
 }
