@@ -8,8 +8,11 @@ SFLAGS=
 INCLUDES=
 
 SSE2FLAG=-msse2
+SSE3FLAG=-msse3
+SSSE3FLAG=-mssse3
 SSE4FLAG=-msse4
 PCLMULFLAG=-mpclmul
+XOPFLAG=-mxop
 AVXFLAG=-mavx
 AVX2FLAG=-mavx2
 
@@ -17,13 +20,43 @@ SRCDIR=.
 SRCTOP=../..
 TOPDIR=$(SRCTOP)
 
-all: x86.o x86.lo fill_window_sse.o fill_window_sse.lo deflate_quick.o deflate_quick.lo insert_string_sse.o insert_string_sse.lo crc_folding.o crc_folding.lo
+all: x86.o x86.lo adler32_sse3.o adler32_sse3.lo adler32_ssse3.o adler32_ssse3.lo adler32_sse4.o adler32_sse4.lo adler32_x86.o adler32_x86.lo adler32_xop.o adler32_xop.lo fill_window_sse.o fill_window_sse.lo deflate_quick.o deflate_quick.lo insert_string_sse.o insert_string_sse.lo crc_folding.o crc_folding.lo
 
 x86.o: $(SRCDIR)/x86.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/x86.c
 
 x86.lo: $(SRCDIR)/x86.c
 	$(CC) $(SFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/x86.c
+
+adler32_sse3.o: $(SRCDIR)/adler32_sse3.c
+	$(CC) $(CFLAGS) $(SSE3FLAG) $(INCLUDES) -c -o $@ $(SRCDIR)/adler32_sse3.c
+
+adler32_sse3.lo: $(SRCDIR)/adler32_sse3.c
+	$(CC) $(SFLAGS) $(SSE3FLAG) $(INCLUDES) -c -o $@ $(SRCDIR)/adler32_sse3.c
+
+adler32_ssse3.o: $(SRCDIR)/adler32_ssse3.c
+	$(CC) $(CFLAGS) $(SSSE3FLAG) $(INCLUDES) -c -o $@ $(SRCDIR)/adler32_ssse3.c
+
+adler32_ssse3.lo: $(SRCDIR)/adler32_ssse3.c
+	$(CC) $(SFLAGS) $(SSSE3FLAG) $(INCLUDES) -c -o $@ $(SRCDIR)/adler32_ssse3.c
+
+adler32_sse4.o: $(SRCDIR)/adler32_sse4.c
+	$(CC) $(CFLAGS) $(SSE4FLAG) $(INCLUDES) -c -o $@ $(SRCDIR)/adler32_sse4.c
+
+adler32_sse4.lo: $(SRCDIR)/adler32_sse4.c
+	$(CC) $(SFLAGS) $(SSE4FLAG) $(INCLUDES) -c -o $@ $(SRCDIR)/adler32_sse4.c
+
+adler32_x86.o: $(SRCDIR)/adler32_x86.c
+	$(CC) $(CFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/adler32_x86.c
+
+adler32_x86.lo: $(SRCDIR)/adler32_x86.c
+	$(CC) $(SFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/adler32_x86.c
+
+adler32_xop.o: $(SRCDIR)/adler32_xop.c
+	$(CC) $(CFLAGS) $(XOPFLAG) $(INCLUDES) -c -o $@ $(SRCDIR)/adler32_xop.c
+
+adler32_xop.lo: $(SRCDIR)/adler32_xop.c
+	$(CC) $(SFLAGS) $(XOPFLAG) $(INCLUDES) -c -o $@ $(SRCDIR)/adler32_xop.c
 
 fill_window_avx.o: $(SRCDIR)/fill_window_avx.c
 	$(CC) $(CFLAGS) $(AVX2FLAG) $(INCLUDES) -c -o $@ $(SRCDIR)/fill_window_avx.c
@@ -78,6 +111,11 @@ depend:
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
+adler32_sse3.o: $(SRCDIR)/adler32_sse3.h $(SRCDIR)/adler32_intrin.h $(SRCDIR)/adler32_x86.h $(SRCTOP)/zlib.h $(TOPDIR)/zconf.h
+adler32_ssse3.o: $(SRCDIR)/adler32_ssse3.h $(SRCDIR)/adler32_intrin.h $(SRCDIR)/adler32_x86.h $(SRCTOP)/zlib.h $(TOPDIR)/zconf.h
+adler32_sse4.o: $(SRCDIR)/adler32_sse4.h $(SRCDIR)/adler32_intrin.h $(SRCDIR)/adler32_x86.h $(SRCTOP)/zlib.h $(TOPDIR)/zconf.h
+adler32_x86.o: $(SRCDIR)/adler32_x86.h $(SRCTOP)/zlib.h $(TOPDIR)/zconf.h
+adler32_xop.o: $(SRCDIR)/adler32_xop.h $(SRCDIR)/adler32_intrin.h $(SRCDIR)/adler32_x86.h $(SRCTOP)/zlib.h $(TOPDIR)/zconf.h
 crc_folding.o: $(SRCDIR)/crc_folding.h $(SRCTOP)/deflate.h $(SRCTOP)/zutil.h $(SRCTOP)/zlib.h $(TOPDIR)/zconf.h
 crc_pclmulqdq.o: $(SRCDIR)/x86.h $(SRCDIR)/crc_folding.h $(SRCTOP)/deflate.h $(SRCTOP)/zutil.h $(SRCTOP)/zlib.h $(TOPDIR)/zconf.h
 deflate_quick.o: $(SRCTOP)/deflate.h $(SRCTOP)/zutil.h $(SRCTOP)/zlib.h $(TOPDIR)/zconf.h
@@ -85,6 +123,11 @@ fill_window_avx.o: $(SRCTOP)/deflate.h $(SRCTOP)/deflate_p.h $(SRCTOP)/zutil.h $
 fill_window_sse.o: $(SRCTOP)/deflate.h $(SRCTOP)/deflate_p.h $(SRCTOP)/zutil.h $(SRCTOP)/zlib.h $(TOPDIR)/zconf.h
 x86.o: $(SRCDIR)/x86.h
 
+adler32_sse3.lo: $(SRCDIR)/adler32_sse3.h $(SRCDIR)/adler32_intrin.h $(SRCDIR)/adler32_x86.h $(SRCTOP)/zlib.h $(TOPDIR)/zconf.h
+adler32_ssse3.lo: $(SRCDIR)/adler32_ssse3.h $(SRCDIR)/adler32_intrin.h $(SRCDIR)/adler32_x86.h $(SRCTOP)/zlib.h $(TOPDIR)/zconf.h
+adler32_sse4.lo: $(SRCDIR)/adler32_sse4.h $(SRCDIR)/adler32_intrin.h $(SRCDIR)/adler32_x86.h $(SRCTOP)/zlib.h $(TOPDIR)/zconf.h
+adler32_x86.lo: $(SRCDIR)/adler32_x86.h $(SRCTOP)/zlib.h $(TOPDIR)/zconf.h
+adler32_xop.lo: $(SRCDIR)/adler32_xop.h $(SRCDIR)/adler32_intrin.h $(SRCDIR)/adler32_x86.h $(SRCTOP)/zlib.h $(TOPDIR)/zconf.h
 crc_folding.lo: $(SRCDIR)/crc_folding.h $(SRCTOP)/deflate.h $(SRCTOP)/zutil.h $(SRCTOP)/zlib.h $(TOPDIR)/zconf.h
 crc_pclmulqdq.lo: $(SRCDIR)/x86.h $(SRCDIR)/crc_folding.h $(SRCTOP)/deflate.h $(SRCTOP)/zutil.h $(SRCTOP)/zlib.h $(TOPDIR)/zconf.h
 deflate_quick.lo: $(SRCTOP)/deflate.h $(SRCTOP)/zutil.h $(SRCTOP)/zlib.h $(TOPDIR)/zconf.h

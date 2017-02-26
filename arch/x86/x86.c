@@ -27,9 +27,13 @@
 #endif
 
 ZLIB_INTERNAL int x86_cpu_has_sse2;
+ZLIB_INTERNAL int x86_cpu_has_sse3;
+ZLIB_INTERNAL int x86_cpu_has_ssse3;
+ZLIB_INTERNAL int x86_cpu_has_sse41;
 ZLIB_INTERNAL int x86_cpu_has_sse42;
 ZLIB_INTERNAL int x86_cpu_has_pclmulqdq;
 ZLIB_INTERNAL int x86_cpu_has_tzcnt;
+ZLIB_INTERNAL int x86_cpu_has_xop;
 ZLIB_INTERNAL int x86_cpu_has_avx;
 ZLIB_INTERNAL int x86_cpu_has_avx2;
 
@@ -64,6 +68,9 @@ void ZLIB_INTERNAL x86_check_features(void) {
 	cpuid(1 /*CPU_PROCINFO_AND_FEATUREBITS*/, &eax, &ebx, &ecx, &edx);
 
 	x86_cpu_has_sse2 = edx & 0x4000000;
+	x86_cpu_has_sse3 = ecx & 0x1;
+	x86_cpu_has_ssse3 = ecx & 0x200;
+	x86_cpu_has_sse41 = ecx & 0x80000;
 	x86_cpu_has_sse42 = ecx & 0x100000;
 	x86_cpu_has_pclmulqdq = ecx & 0x2;
 	x86_cpu_has_avx = (ecx & 0x18000000) && avx_enabled();
@@ -72,4 +79,8 @@ void ZLIB_INTERNAL x86_check_features(void) {
 
 	x86_cpu_has_avx2 = ebx & 0x20;
 	x86_cpu_has_tzcnt = ecx & 0x8;
+
+	cpuid(0x80000001, &eax, &ebx, &ecx, &edx);
+
+	x86_cpu_has_xop = ecx & 0x4000;
 }

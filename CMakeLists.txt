@@ -67,8 +67,17 @@ if(${CMAKE_C_COMPILER} MATCHES "icc" OR ${CMAKE_C_COMPILER} MATCHES "icpc" OR ${
         if(NOT SSE2FLAG)
             set(SSE2FLAG "-msse2")
         endif()
+        if(NOT SSE3FLAG)
+            set(SSE3FLAG "-msse3")
+        endif()
+        if(NOT SSSE3FLAG)
+            set(SSSE3FLAG "-mssse3")
+        endif()
         if(NOT SSE4FLAG)
             set(SSE4FLAG "-msse4.2")
+        endif()
+        if(NOT XOPFLAG)
+            set(XOPFLAG "-mxop")
         endif()
         if(NOT AVXFLAG)
             set(AVXFLAG "-mavx")
@@ -79,6 +88,12 @@ if(${CMAKE_C_COMPILER} MATCHES "icc" OR ${CMAKE_C_COMPILER} MATCHES "icpc" OR ${
     else()
         if(NOT SSE2FLAG)
             set(SSE2FLAG "/arch:SSE2")
+        endif()
+        if(NOT SSE3FLAG)
+            set(SSE3FLAG "/arch:SSE3")
+        endif()
+        if(NOT SSSE3FLAG)
+            set(SSSE3FLAG "/arch:SSSE3")
         endif()
         if(NOT SSE4FLAG)
             set(SSE4FLAG "/arch:SSE4.2")
@@ -119,6 +134,16 @@ else()
                 set(SSE2FLAG "-msse2")
             endif()
         endif()
+        if(NOT SSE3FLAG)
+            if(__GNUC__)
+                set(SSE3FLAG "-msse3")
+            endif()
+        endif()
+        if(NOT SSSE3FLAG)
+            if(__GNUC__)
+                set(SSSE3FLAG "-mssse3")
+            endif()
+        endif()
         if(NOT SSE4FLAG)
             if(__GNUC__)
                 set(SSE4FLAG "-msse4")
@@ -127,6 +152,11 @@ else()
         if(NOT PCLMULFLAG)
             if(__GNUC__)
                 set(PCLMULFLAG "-mpclmul")
+            endif()
+        endif()
+        if(NOT XOPFLAG)
+            if(__GNUC__)
+                set(XOPFLAG "-mxop")
             endif()
         endif()
         if(NOT AVXFLAG)
@@ -141,8 +171,11 @@ else()
         endif()
     else(NOT NATIVEFLAG)
         set(SSE2FLAG ${NATIVEFLAG})
+        set(SSE3FLAG ${NATIVEFLAG})
+        set(SSSE3FLAG ${NATIVEFLAG})
         set(SSE4FLAG ${NATIVEFLAG})
         set(PCLMULFLAG ${NATIVEFLAG})
+        set(XOPFLAG ${NATIVEFLAG})
         set(AVXFLAG ${NATIVEFLAG})
         set(AVX2FLAG ${NATIVEFLAG})
     endif(NOT NATIVEFLAG)
@@ -275,6 +308,66 @@ else()
     if(WITH_NATIVE_INSTRUCTIONS)
         set(CMAKE_REQUIRED_FLAGS "${NATIVEFLAG}")
     else()
+        set(CMAKE_REQUIRED_FLAGS "${SSE3FLAG}")
+    endif()
+    check_c_source_runs(
+        "#include <x86intrin.h>
+         
+        int main(void)
+        {
+            __m128d u, v, w;
+            double a[2] = { 0.1, 0.2 };
+            double b[2] = { 0.001, 0.002 };
+
+            u = _mm_load_pd(a);
+            v = _mm_load_pd(b);
+            w = _mm_hadd_pd(u, v);
+            (void)w;
+            return 0;
+        }"
+        HAVE_SSE3_INTRIN
+    )
+
+    if(WITH_NATIVE_INSTRUCTIONS)
+        set(CMAKE_REQUIRED_FLAGS "${NATIVEFLAG}")
+    else()
+        set(CMAKE_REQUIRED_FLAGS "${SSSE3FLAG}")
+    endif()
+    check_c_source_runs(
+        "#include <x86intrin.h>
+
+        int main(void)
+        {
+            __m128i u, v, w;
+            u = _mm_set1_epi32(1);
+            v = _mm_set1_epi32(2);
+            w = _mm_hadd_epi32(u, v);
+            (void)w;
+            return 0;
+        }"
+        HAVE_SSSE3_INTRIN
+    )
+
+    if(WITH_NATIVE_INSTRUCTIONS)
+        set(CMAKE_REQUIRED_FLAGS "${NATIVEFLAG}")
+    else()
+        set(CMAKE_REQUIRED_FLAGS "${SSE4FLAG}")
+    endif()
+    check_c_source_runs(
+        "#include <x86intrin.h>
+
+        int main(void)
+        {
+            __m128i a = _mm_setzero_si128();
+            a = _mm_insert_epi32(a, 1, 0);
+            (void)a;
+        }"
+        HAVE_SSE41_INTRIN
+    )
+
+    if(WITH_NATIVE_INSTRUCTIONS)
+        set(CMAKE_REQUIRED_FLAGS "${NATIVEFLAG}")
+    else()
         # use the generic SSE4 enabler option to check for the SSE4.2 instruction we require:
         set(CMAKE_REQUIRED_FLAGS "${SSE4FLAG}")
     endif()
@@ -304,6 +397,22 @@ else()
             return 0;
         }"
         HAVE_PCLMULQDQ_INTRIN
+    )
+    if(WITH_NATIVE_INSTRUCTIONS)
+        set(CMAKE_REQUIRED_FLAGS "${NATIVEFLAG}")
+    else()
+        set(CMAKE_REQUIRED_FLAGS "${XOPFLAG}")
+    endif()
+    check_c_source_runs(
+        "#include <x86intrin.h>
+        int main(void)
+        {
+            __m128i a = _mm_set1_epi8(1);
+            __m128i b = _mm_haddw_epi8(a);
+            (void)b;
+            return 0;
+        }"
+        HAVE_XOP_INTRIN
     )
     if(WITH_NATIVE_INSTRUCTIONS)
         set(CMAKE_REQUIRED_FLAGS "${NATIVEFLAG}")
@@ -382,7 +491,25 @@ endif()
 
 if("${ARCHDIR}" MATCHES "arch/x86" AND WITH_OPTIM)
     add_definitions("-DX86_CPUID")
-    set(ZLIB_ARCH_SRCS ${ZLIB_ARCH_SRCS} ${ARCHDIR}/x86.c)
+    set(ZLIB_ARCH_SRCS ${ZLIB_ARCH_SRCS} ${ARCHDIR}/adler32_x86.c ${ARCHDIR}/x86.c)
+    if(HAVE_SSE3_INTRIN)
+        add_definitions(-DX86_SSE3_ADLER32)
+        set(ZLIB_ARCH_SRCS ${ZLIB_ARCH_SRCS} ${ARCHDIR}/adler32_sse3.c)
+        add_feature_info(SSE3_ADLER32 1 "Support SSE3-accelerated adler32, using \"${SSE3FLAG}\"")
+        add_intrinsics_option(${SSE3FLAG})
+    endif()
+    if(HAVE_SSSE3_INTRIN)
+        add_definitions(-DX86_SSSE3_ADLER32)
+        set(ZLIB_ARCH_SRCS ${ZLIB_ARCH_SRCS} ${ARCHDIR}/adler32_ssse3.c)
+        add_feature_info(SSSE3_ADLER32 1 "Support SSSE3-accelerated adler32, using \"${SSSE3FLAG}\"")
+        add_intrinsics_option(${SSSE3FLAG})
+    endif()
+    if(HAVE_SSE41_INTRIN)
+        add_definitions(-DX86_SSE4_ADLER32)
+        set(ZLIB_ARCH_SRCS ${ZLIB_ARCH_SRCS} ${ARCHDIR}/adler32_sse4.c)
+        add_feature_info(SSE4_ADLER32 1 "Support SSE4-accelerated adler32, using \"${SSE4FLAG}\"")
+        add_intrinsics_option(${SSE4FLAG})
+    endif()
     if(HAVE_SSE42_INTRIN)
         add_definitions(-DX86_SSE4_2_CRC_HASH)
         set(ZLIB_ARCH_SRCS ${ZLIB_ARCH_SRCS} ${ARCHDIR}/insert_string_sse.c)
@@ -411,6 +538,12 @@ if("${ARCHDIR}" MATCHES "arch/x86" AND WITH_OPTIM)
             add_feature_info(PCLMUL_CRC 1 "Support CRC hash generation using PCLMULQDQ, using \"${PCLMULFLAG} ${SSE4FLAG}\"")
             add_intrinsics_option(${SSE4FLAG})
         endif()
+    endif()
+    if(HAVE_XOP_INTRIN)
+         add_definitions(-DX86_XOP_ADLER32)
+         set(ZLIB_ARCH_SRCS ${ZLIB_ARCH_SRCS} ${ARCH_DIR}/adler32_xop.c)
+         add_feature_info(XOP_ADLER32 1 "Support XOP-accelerated adler32 using \"${XOPFLAG}\".")
+         add_intrinsic_option(${XOPFLAG})
     endif()
     if(HAVE_AVX2_INTRIN)
          add_definitions(-DX86_AVX_FILL_WINDOW)
