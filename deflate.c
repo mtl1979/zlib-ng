@@ -268,7 +268,7 @@ int ZEXPORT deflateInit2_(z_stream *strm, int level, int method, int windowBits,
 
 #ifdef X86_SSE4_2_CRC_HASH
     if (x86_cpu_has_sse42)
-        s->hash_bits = (unsigned int)15;
+        s->hash_bits = 15U;
     else
 #endif
         s->hash_bits = (unsigned int)memLevel + 7;
@@ -1097,7 +1097,7 @@ ZLIB_INTERNAL unsigned read_buf(z_stream *strm, unsigned char *buf, unsigned siz
  * Initialize the "longest match" routines for a new zlib stream
  */
 static void lm_init(deflate_state *s) {
-    s->window_size = (unsigned long)2L*s->w_size;
+    s->window_size = 2UL*s->w_size;
 
     CLEAR_HASH(s);
 

@@ -96,7 +96,7 @@ static void make_crc_table() {
         /* make exclusive-or pattern from polynomial (0xedb88320) */
         poly = 0;
         for (n = 0; n < (int)(sizeof(p)/sizeof(unsigned char)); n++)
-            poly |= (uint32_t)1 << (31 - p[n]);
+            poly |= UINT32_C(1) << (31 - p[n]);
 
         /* generate a crc for every 8-bit value */
         for (n = 0; n < 256; n++) {

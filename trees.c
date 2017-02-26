@@ -638,7 +638,7 @@ static void scan_tree(deflate_state *s, ct_data *tree, int max_code) {
     if (nextlen == 0)
          max_count = 138, min_count = 3;
 
-    tree[max_code+1].Len = (uint16_t)0xffff; /* guard */
+    tree[max_code+1].Len = UINT16_C(0xffff); /* guard */
 
     for (n = 0; n <= max_code; n++) {
         curlen = nextlen;
@@ -799,7 +799,7 @@ void ZLIB_INTERNAL _tr_stored_block(deflate_state *s, char *buf, unsigned long s
     memcpy(s->pending_buf + s->pending, (unsigned char *)buf, stored_len);
     s->pending += stored_len;
 #ifdef ZLIB_DEBUG
-    s->compressed_len = (s->compressed_len + 3 + 7) & (unsigned long)~7L;
+    s->compressed_len = (s->compressed_len + 3 + 7) & ~7UL;
     s->compressed_len += (stored_len + 4) << 3;
     s->bits_sent += 2*16;
     s->bits_sent += stored_len<<3;

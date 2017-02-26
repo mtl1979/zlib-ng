@@ -108,9 +108,9 @@ int ZLIB_INTERNAL inflate_table(codetype type, uint16_t *lens, unsigned codes,
         if (count[max] != 0) break;
     if (root > max) root = max;
     if (max == 0) {                     /* no symbols to code at all */
-        here.op = (unsigned char)64;    /* invalid code marker */
-        here.bits = (unsigned char)1;
-        here.val = (uint16_t)0;
+        here.op = 64U;    /* invalid code marker */
+        here.bits = 1U;
+        here.val = UINT16_C(0);
         *(*table)++ = here;             /* make a table to force an error */
         *(*table)++ = here;
         *bits = 1;
@@ -208,13 +208,13 @@ int ZLIB_INTERNAL inflate_table(codetype type, uint16_t *lens, unsigned codes,
         /* create table entry */
         here.bits = (unsigned char)(len - drop);
         if (work[sym] + 1U < match) {
-            here.op = (unsigned char)0;
+            here.op = 0U;
             here.val = work[sym];
         } else if (work[sym] >= match) {
             here.op = (unsigned char)(extra[work[sym] - match]);
             here.val = base[work[sym] - match];
         } else {
-            here.op = (unsigned char)(32 + 64);         /* end of block */
+            here.op = 32U + 64U;         /* end of block */
             here.val = 0;
         }
 
@@ -283,9 +283,9 @@ int ZLIB_INTERNAL inflate_table(codetype type, uint16_t *lens, unsigned codes,
        at most one remaining entry, since if the code is incomplete, the
        maximum code length that was allowed to get this far is one bit) */
     if (huff != 0) {
-        here.op = (unsigned char)64;            /* invalid code marker */
+        here.op = 64U;            /* invalid code marker */
         here.bits = (unsigned char)(len - drop);
-        here.val = (uint16_t)0;
+        here.val = UINT16_C(0);
         next[huff] = here;
     }
 
