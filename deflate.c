@@ -353,7 +353,7 @@ int ZEXPORT deflateSetDictionary(z_stream *strm, const unsigned char *dictionary
 
     /* when using zlib wrappers, compute Adler-32 for provided dictionary */
     if (wrap == 1)
-        strm->adler = adler32(strm->adler, dictionary, dictLength);
+        strm->adler = adler32_z(strm->adler, dictionary, dictLength);
     s->wrap = 0;                    /* avoid computing Adler-32 in read_buf */
 
     /* if dictionary would fill window, just replace the history */
@@ -442,7 +442,7 @@ int ZEXPORT deflateResetKeep(z_stream *strm) {
         crc_reset(s);
     else
 #endif
-        strm->adler = adler32(0L, NULL, 0);
+        strm->adler = adler32_z(0L, NULL, 0);
     s->last_flush = Z_NO_FLUSH;
 
     _tr_init(s);
@@ -686,7 +686,7 @@ ZLIB_INTERNAL void flush_pending(z_stream *strm) {
 #define HCRC_UPDATE(beg) \
     do { \
         if (s->gzhead->hcrc && s->pending > (beg)) \
-            strm->adler = crc32(strm->adler, s->pending_buf + (beg), s->pending - (beg)); \
+            strm->adler = crc32_z(strm->adler, s->pending_buf + (beg), s->pending - (beg)); \
     } while (0)
 
 /* ========================================================================= */
@@ -762,7 +762,7 @@ int ZEXPORT deflate(z_stream *strm, int flush) {
         if (s->strstart != 0) {
             putIntMSB(s, strm->adler);
         }
-        strm->adler = adler32(0L, NULL, 0);
+        strm->adler = adler32_z(0L, NULL, 0);
         s->status = BUSY_STATE;
 
         /* Compression must start with an empty pending buffer */
@@ -809,7 +809,7 @@ int ZEXPORT deflate(z_stream *strm, int flush) {
                 put_short(s, s->gzhead->extra_len);
             }
             if (s->gzhead->hcrc)
-                strm->adler = crc32(strm->adler, s->pending_buf, s->pending);
+                strm->adler = crc32_z(strm->adler, s->pending_buf, s->pending);
             s->gzindex = 0;
             s->status = EXTRA_STATE;
         }
@@ -1085,7 +1085,7 @@ ZLIB_INTERNAL unsigned read_buf(z_stream *strm, unsigned char *buf, unsigned siz
     {
         memcpy(buf, strm->next_in, len);
         if (strm->state->wrap == 1)
-            strm->adler = adler32(strm->adler, buf, len);
+            strm->adler = adler32_z(strm->adler, buf, len);
     }
     strm->next_in  += len;
     strm->total_in += len;

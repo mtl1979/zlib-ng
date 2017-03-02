@@ -411,12 +411,12 @@ static int updatewindow(z_stream *strm, const unsigned char *end, uint32_t copy)
 
 /* Macros for inflate(): */
 
-/* check function to use adler32() for zlib or crc32() for gzip */
+/* check function to use adler32_z() for zlib or crc32_z() for gzip */
 #ifdef GUNZIP
 #  define UPDATE(check, buf, len) \
-    (state->flags ? crc32(check, buf, len) : adler32(check, buf, len))
+    (state->flags ? crc32_z(check, buf, len) : adler32_z(check, buf, len))
 #else
-#  define UPDATE(check, buf, len) adler32(check, buf, len)
+#  define UPDATE(check, buf, len) adler32_z(check, buf, len)
 #endif
 
 /* check macros for header crc */
@@ -424,13 +424,13 @@ static int updatewindow(z_stream *strm, const unsigned char *end, uint32_t copy)
 #  define CRC2(check, word) \
      do { \
        hbuf.s[0] = ZSHORT_TO_LITTLE(word); \
-       check = crc32(check, hbuf.uc, 2); \
+       check = crc32_z(check, hbuf.uc, 2); \
      } while (0)
 
 #  define CRC4(check, word) \
      do { \
        hbuf.i = ZINT_TO_LITTLE(word); \
-       check = crc32(check, hbuf.uc, 4); \
+       check = crc32_z(check, hbuf.uc, 4); \
      } while (0)
 #endif /* GUNZIP */
 
@@ -629,7 +629,7 @@ int ZEXPORT inflate(z_stream *strm, int flush) {
             if ((state->wrap & 2) && hold == 0x8b1f) {  /* gzip header */
                 if (state->wbits == 0)
                     state->wbits = 15;
-                state->check = crc32(0L, NULL, 0);
+                state->check = crc32_z(0L, NULL, 0);
                 CRC2(state->check, hold);
                 INITBITS();
                 state->mode = FLAGS;
@@ -663,7 +663,7 @@ int ZEXPORT inflate(z_stream *strm, int flush) {
             }
             state->dmax = 1U << len;
             Tracev((stderr, "inflate:   zlib header ok\n"));
-            strm->adler = state->check = adler32(0L, NULL, 0);
+            strm->adler = state->check = adler32_z(0L, NULL, 0);
             state->mode = hold & 0x200 ? DICTID : TYPE;
             INITBITS();
             break;
@@ -732,7 +732,7 @@ int ZEXPORT inflate(z_stream *strm, int flush) {
                                 state->head->extra_max - len : copy);
                     }
                     if ((state->flags & 0x0200) && (state->wrap & 4))
-                        state->check = crc32(state->check, next, copy);
+                        state->check = crc32_z(state->check, next, copy);
                     have -= copy;
                     next += copy;
                     state->length -= copy;
@@ -752,7 +752,7 @@ int ZEXPORT inflate(z_stream *strm, int flush) {
                         state->head->name[state->length++] = (unsigned char)len;
                 } while (len && copy < have);
                 if ((state->flags & 0x0200) && (state->wrap & 4))
-                    state->check = crc32(state->check, next, copy);
+                    state->check = crc32_z(state->check, next, copy);
                 have -= copy;
                 next += copy;
                 if (len)
@@ -773,7 +773,7 @@ int ZEXPORT inflate(z_stream *strm, int flush) {
                         state->head->comment[state->length++] = (unsigned char)len;
                 } while (len && copy < have);
                 if ((state->flags & 0x0200) && (state->wrap & 4))
-                    state->check = crc32(state->check, next, copy);
+                    state->check = crc32_z(state->check, next, copy);
                 have -= copy;
                 next += copy;
                 if (len)
@@ -796,7 +796,7 @@ int ZEXPORT inflate(z_stream *strm, int flush) {
                 state->head->hcrc = (int)((state->flags >> 9) & 1);
                 state->head->done = 1;
             }
-            strm->adler = state->check = crc32(0L, NULL, 0);
+            strm->adler = state->check = crc32_z(0L, NULL, 0);
             state->mode = TYPE;
             break;
 #endif
@@ -810,7 +810,7 @@ int ZEXPORT inflate(z_stream *strm, int flush) {
                 RESTORE();
                 return Z_NEED_DICT;
             }
-            strm->adler = state->check = adler32(0L, NULL, 0);
+            strm->adler = state->check = adler32_z(0L, NULL, 0);
             state->mode = TYPE;
         case TYPE:
             if (flush == Z_BLOCK || flush == Z_TREES)
@@ -1285,8 +1285,8 @@ int ZEXPORT inflateSetDictionary(z_stream *strm, const unsigned char *dictionary
 
     /* check for correct dictionary identifier */
     if (state->mode == DICT) {
-        dictid = adler32(0L, NULL, 0);
-        dictid = adler32(dictid, dictionary, dictLength);
+        dictid = adler32_z(0L, NULL, 0);
+        dictid = adler32_z(dictid, dictionary, dictLength);
         if (dictid != state->check)
             return Z_DATA_ERROR;
     }
