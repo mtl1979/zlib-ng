@@ -114,6 +114,14 @@ pclmulflag="-mpclmul"
 xopflag="-mxop"
 avxflag="-mavx"
 avx2flag="-mavx2"
+nosse2=0
+nosse3=0
+nossse3=0
+nosse4=0
+nopclmul=0
+noxop=0
+noavx=0
+noavx2=0
 without_optimizations=0
 without_new_strategies=0
 gcc=0
@@ -150,6 +158,8 @@ case "$1" in
       echo '  configure [--zlib-compat] [--prefix=PREFIX]  [--eprefix=EXPREFIX]' | tee -a configure.log
       echo '    [--static] [--32] [--64] [--libdir=LIBDIR] [--sharedlibdir=LIBDIR]' | tee -a configure.log
       echo '    [--includedir=INCLUDEDIR] [--archs="-arch i386 -arch x86_64"]' | tee -a configure.log
+      echo '    [--native] [--no-sse2] [--no-sse3] [--no-ssse3] [--no-sse4]' | tee -a configure.log
+      echo '    [--no-pclmul] [--no-xop] [--no-avx] [--no-avx2]' | tee -a configure.log
         exit 0 ;;
     -p*=* | --prefix=*) prefix=`echo $1 | sed 's/.*=//'`; shift ;;
     -e*=* | --eprefix=*) exec_prefix=`echo $1 | sed 's/.*=//'`; shift ;;
@@ -168,6 +178,14 @@ case "$1" in
     -3* | --32) build32=1; shift ;;
     -6* | --64) build64=1; shift ;;
     -n | --native) native=1; shift ;;
+    --no-sse2) nosse2=1; shift ;;
+    --no-sse3) nosse3=1; shift ;;
+    --no-ssse3) nossse3=1; shift ;;
+    --no-sse4) nosse4=1; shift ;;
+    --no-pclmul) nopclmul=1; shift ;;
+    --no-xop) noxop=1; shift ;;
+    --no-avx) noavx=1; shift ;;
+    --no-avx2) noavx2=1; shift ;;
     -a*=* | --archs=*) ARCHS=`echo $1 | sed 's/.*=//'`; shift ;;
     --sysconfdir=*) echo "ignored option: --sysconfdir" | tee -a configure.log; shift ;;
     --localstatedir=*) echo "ignored option: --localstatedir" | tee -a configure.log; shift ;;
@@ -715,7 +733,7 @@ int main(void)
     return 0;
 }
 EOF
-if try ${CC} ${CFLAGS} ${sse2flag} $test.c; then
+if test $nosse2 -eq 0 && try ${CC} ${CFLAGS} ${sse2flag} $test.c; then
     echo "Checking for SSE2 intrinsics ... Yes." | tee -a configure.log
     HAVE_SSE2_INTRIN=1
 else
@@ -740,7 +758,7 @@ int main(void)
     return 0;
 }
 EOF
-if try ${CC} ${CFLAGS} ${sse3flag} $test.c; then
+if test $nosse3 -eq 0 && try ${CC} ${CFLAGS} ${sse3flag} $test.c; then
     echo "Checking for SSE3 intrinsics ... Yes." | tee -a configure.log
     HAVE_SSE3_INTRIN=1
 else
@@ -762,7 +780,7 @@ int main(void)
     return 0;
 }
 EOF
-if try ${CC} ${CFLAGS} ${ssse3flag} $test.c; then
+if test $nossse3 -eq 0 && try ${CC} ${CFLAGS} ${ssse3flag} $test.c; then
     echo "Checking for SSSE3 intrinsics ... Yes." | tee -a configure.log
     HAVE_SSSE3_INTRIN=1
 else
@@ -780,7 +798,7 @@ int main(void)
     (void)a;
 }
 EOF
-if try ${CC} ${CFLAGS} ${sse4flag} $test.c; then
+if test $nosse4 -eq 0 && try ${CC} ${CFLAGS} ${sse4flag} $test.c; then
     echo "Checking for _mm_insert_epi32 ... Yes." | tee -a configure.log
     HAVE_SSE4_1_INTRIN=1
 else
@@ -799,7 +817,7 @@ int main(void)
     return 0;
 }
 EOF
-if try ${CC} ${CFLAGS} ${xopflag} $test.c; then
+if test $noxop -eq 0 && try ${CC} ${CFLAGS} ${xopflag} $test.c; then
     echo "Checking for XOP intrinsics ... Yes." | tee -a configure.log
     HAVE_XOP_INTRIN=1
 else
@@ -820,7 +838,7 @@ int main(void)
     return 0;
 }
 EOF
-if try ${CC} ${CFLAGS} ${pclmulflag} $test.c; then
+if test $nopclmul -eq 0 && try ${CC} ${CFLAGS} ${pclmulflag} $test.c; then
     echo "Checking for PCLMULQDQ intrinsics ... Yes." | tee -a configure.log
     HAVE_PCLMULQDQ_INTRIN=1
 else
@@ -838,7 +856,7 @@ int main(void)
     return 0;
 }
 EOF
-if try ${CC} ${CFLAGS} ${avxflag} $test.c; then
+if test $noavx -eq 0 && try ${CC} ${CFLAGS} ${avxflag} $test.c; then
     echo "Checking for AVX intrinsics ... Yes." | tee -a configure.log
     HAVE_AVX_INTRIN=1
 else
@@ -857,7 +875,7 @@ int main(void)
     return 0;
 }
 EOF
-if try ${CC} ${CFLAGS} ${avx2flag} $test.c; then
+if test $noavx2 -eq 0 && try ${CC} ${CFLAGS} ${avx2flag} $test.c; then
     echo "Checking for AVX2 intrinsics ... Yes." | tee -a configure.log
     HAVE_AVX2_INTRIN=1
 else
@@ -956,10 +974,12 @@ case "${ARCH}" in
                 ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} fill_window_avx.lo"
             fi
 
-            CFLAGS="${CFLAGS} -DX86_SSE4_2_CRC_HASH"
-            SFLAGS="${SFLAGS} -DX86_SSE4_2_CRC_HASH"
-            ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS} insert_string_sse.o"
-            ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} insert_string_sse.lo"
+            if test $nosse4 -eq 0; then
+                CFLAGS="${CFLAGS} -DX86_SSE4_2_CRC_HASH"
+                SFLAGS="${SFLAGS} -DX86_SSE4_2_CRC_HASH"
+                ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS} insert_string_sse.o"
+                ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} insert_string_sse.lo"
+            fi
 
             if test ${HAVE_PCLMULQDQ_INTRIN} -eq 1; then
                 CFLAGS="${CFLAGS} -DX86_PCLMULQDQ_CRC"
@@ -970,7 +990,7 @@ case "${ARCH}" in
 
 	    # Enable deflate_quick at level 1?
 	    # requires SSE2: code uses fill_window_sse
-            if test ${HAVE_SSE2_INTRIN} -eq 1 && test $without_new_strategies -eq 0; then
+            if test $nosse4 -eq 0 && test ${HAVE_SSE2_INTRIN} -eq 1 && test $without_new_strategies -eq 0; then
                 CFLAGS="${CFLAGS} -DX86_QUICK_STRATEGY"
                 SFLAGS="${SFLAGS} -DX86_QUICK_STRATEGY"
 
