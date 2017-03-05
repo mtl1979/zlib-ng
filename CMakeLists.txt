@@ -62,13 +62,56 @@ if(${ARCH} MATCHES "i686" OR ${ARCH} STREQUAL "x86" OR ${ARCH} MATCHES "x86_64" 
   option(WITH_SSE2 "Enable SSE2 optimizations" ON)
   option(WITH_SSE3 "Enable SSE3 optimizations" ON)
   option(WITH_SSSE3 "Enable SSSE3 optimizations" ON)
+  if(${ARCH} MATCHES "x86_64" OR ${ARCH} MATCHES "AMD64")
+    option(WITH_SSE4 "Enable SSE4 optimizations" ON)
+    option(WITH_PCLMUL "Enable PCLMULQDQ optimizations" ON)
+    option(WITH_XOP "Enable XOP optimizations" ON)
+    option(WITH_AVX "Enable AVX optimizations" ON)
+    option(WITH_AVX2 "Enable AVX2 optimizations" ON)
+    set(MAX_INSTRUCTION_SET "AVX2" CACHE STRING "Maximum instruction set")
+  else()
+    set(MAX_INSTRUCTION_SET "SSSE3" CACHE STRING "Maximum instruction set")
+  endif()
+  add_feature_info(MAX_INSTRUCTION_SET 1 "Maximum instruction set: ${MAX_INSTRUCTION_SET}")
 endif()
-if(${ARCH} MATCHES "x86_64" OR ${ARCH} MATCHES "AMD64")
-  option(WITH_SSE4 "Enable SSE4 optimizations" ON)
-  option(WITH_PCLMUL "Enable PCLMULQDQ optimizations" ON)
-  option(WITH_XOP "Enable XOP optimizations" ON)
-  option(WITH_AVX "Enable AVX optimizations" ON)
-  option(WITH_AVX2 "Enable AVX2 optimizations" ON)
+
+# Evaluate which instruction sets to disable for specified maximum instruction set
+if("${MAX_INSTRUCTION_SET}" STREQUAL "AVX" OR
+   "${MAX_INSTRUCTION_SET}" STREQUAL "XOP" OR
+   "${MAX_INSTRUCTION_SET}" STREQUAL "PCLMUL" OR
+   "${MAX_INSTRUCTION_SET}" STREQUAL "SSE4" OR
+   "${MAX_INSTRUCTION_SET}" STREQUAL "SSSE3" OR
+   "${MAX_INSTRUCTION_SET}" STREQUAL "SSE3" OR
+   "${MAX_INSTRUCTION_SET}" STREQUAL "SSE2" OR
+   "${MAX_INSTRUCTION_SET}" STREQUAL "SSE")
+  set(WITH_AVX2 OFF CACHE BOOL "Enable AVX2 optimizations" FORCE)
+endif()
+if("${MAX_INSTRUCTION_SET}" STREQUAL "PCLMUL" OR
+   "${MAX_INSTRUCTION_SET}" STREQUAL "SSE4" OR
+   "${MAX_INSTRUCTION_SET}" STREQUAL "SSSE3" OR
+   "${MAX_INSTRUCTION_SET}" STREQUAL "SSE3" OR
+   "${MAX_INSTRUCTION_SET}" STREQUAL "SSE2" OR
+   "${MAX_INSTRUCTION_SET}" STREQUAL "SSE")
+  set(WITH_XOP OFF CACHE BOOL "Enable XOP optimizations" FORCE)
+endif()
+if("${MAX_INSTRUCTION_SET}" STREQUAL "SSSE3" OR
+   "${MAX_INSTRUCTION_SET}" STREQUAL "SSE3" OR
+   "${MAX_INSTRUCTION_SET}" STREQUAL "SSE2" OR
+   "${MAX_INSTRUCTION_SET}" STREQUAL "SSE")
+  set(WITH_SSE4   OFF CACHE BOOL "Enable SSE4 optimizations" FORCE)
+  set(WITH_PCLMUL OFF CACHE BOOL "Enable PCLMUL optimizations" FORCE)
+endif()
+if("${MAX_INSTRUCTION_SET}" STREQUAL "SSE3" OR
+   "${MAX_INSTRUCTION_SET}" STREQUAL "SSE2" OR
+   "${MAX_INSTRUCTION_SET}" STREQUAL "SSE")
+  set(WITH_SSSE3 OFF CACHE BOOL "Enable SSSE3 optimizations" FORCE)
+endif()
+if("${MAX_INSTRUCTION_SET}" STREQUAL "SSE2" OR
+   "${MAX_INSTRUCTION_SET}" STREQUAL "SSE")
+  set(WITH_SSE3 OFF CACHE BOOL "Enable SSE3 optimizations" FORCE)
+endif()
+if("${MAX_INSTRUCTION_SET}" STREQUAL "SSE")
+  set(WITH_SSE2 OFF CACHE BOOL "Enable SSE2 optimizations" FORCE)
 endif()
 
 if(${CMAKE_C_COMPILER} MATCHES "icc" OR ${CMAKE_C_COMPILER} MATCHES "icpc" OR ${CMAKE_C_COMPILER} MATCHES "icl")

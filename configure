@@ -160,6 +160,7 @@ case "$1" in
       echo '    [--includedir=INCLUDEDIR] [--archs="-arch i386 -arch x86_64"]' | tee -a configure.log
       echo '    [--native] [--no-sse2] [--no-sse3] [--no-ssse3] [--no-sse4]' | tee -a configure.log
       echo '    [--no-pclmul] [--no-xop] [--no-avx] [--no-avx2]' | tee -a configure.log
+      echo '    [--max-instruction-set=INSTRUCTION_SET]' | tee -a configure.log
         exit 0 ;;
     -p*=* | --prefix=*) prefix=`echo $1 | sed 's/.*=//'`; shift ;;
     -e*=* | --eprefix=*) exec_prefix=`echo $1 | sed 's/.*=//'`; shift ;;
@@ -186,6 +187,16 @@ case "$1" in
     --no-xop) noxop=1; shift ;;
     --no-avx) noavx=1; shift ;;
     --no-avx2) noavx2=1; shift ;;
+    --max-instruction-set=*) max_instruction_set=`echo $1 | sed 's/.*=//'`
+               case "${max_instruction_set}" in
+               AVX|XOP) noavx2=1 ;;
+               PCLMUL|SSE4) noxop=1; noavx=1; noavx2=1 ;;
+               SSSE3) nosse4=1; nopclmul=1; noxop=1; noavx=1; noavx2=1 ;;
+               SSE3) nossse3=1; nosse4; nopclmul=1; noxop=1; noavx=1; noavx2=1 ;;
+               SSE2) nosse3=1; nossse3=1; nosse4=1; nopclmul=1; noxop=1; noavx=1; noavx2=1 ;;
+               SSE) nosse2=1; nosse3=1; nossse3=1; nosse4=1; nopclmul=1; noxop=1; noavx=1; noavx2=1 ;;
+               esac
+               shift ;;
     -a*=* | --archs=*) ARCHS=`echo $1 | sed 's/.*=//'`; shift ;;
     --sysconfdir=*) echo "ignored option: --sysconfdir" | tee -a configure.log; shift ;;
     --localstatedir=*) echo "ignored option: --localstatedir" | tee -a configure.log; shift ;;
