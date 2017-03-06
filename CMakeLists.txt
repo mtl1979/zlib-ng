@@ -319,6 +319,42 @@ if(HAVE_ATTRIBUTE_VISIBILITY_INTERNAL)
 endif()
 
 #
+# check for mmap
+#
+
+if (Z_HAVE_UNISTD_H)
+  check_c_source_compiles(
+    "#include <sys/mman.h>
+     #include <sys/stat.h>
+     #include <fcntl.h>
+     #include <stdio.h>
+     #include <stdlib.h>
+     #include <unistd.h>
+
+     int main() {
+       int fd = open(\"configure\", O_RDONLY);
+       struct stat sb;
+       void *addr;
+       size_t len;
+       if (fd != -1) {
+         if (fstat(fd, &sb) != -1) {
+           len = sb.st_size;
+           addr = mmap(NULL, len, PROT_READ, MAP_PRIVATE, fd, 0);
+           if (addr != MAP_FAILED) {
+             munmap(addr, len);
+           }
+         }
+         close(fd);
+       }
+       return 0;
+     }"
+     HAVE_MMAP
+  )
+  if (HAVE_MMAP)
+    add_definitions(-DUSE_MMAP)
+  endif()
+endif()
+#
 # check for __builtin_ctzl() support in the compiler
 #
 check_c_source_compiles(

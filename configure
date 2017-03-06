@@ -103,6 +103,7 @@ shared=1
 gzfileops=0
 compat=0
 cover=0
+unistd=0
 build32=0
 build64=0
 native=0
@@ -606,6 +607,7 @@ cat > $test.c <<EOF
 int main() { return 0; }
 EOF
 if try $CC -c $CFLAGS $test.c; then
+  unistd=1
   sed < zconf.h "/^#ifdef HAVE_UNISTD_H.* may be/s/def HAVE_UNISTD_H\(.*\) may be/ 1\1 was/" > zconf.temp.h
   mv zconf.temp.h zconf.h
   echo "Checking for unistd.h... Yes." | tee -a configure.log
@@ -626,6 +628,43 @@ if try $CC -c $CFLAGS $test.c; then
   echo "Checking for stdarg.h... Yes." | tee -a configure.log
 else
   echo "Checking for stdarg.h... No." | tee -a configure.log
+fi
+
+# check for mmap
+if test $unistd -eq 1; then
+  cat > $test.c <<EOF
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+int main() {
+  int fd = open("configure", O_RDONLY);
+  struct stat sb;
+  void *addr;
+  size_t len;
+  if (fd != -1) {
+    if (fstat(fd, &sb) != -1) {
+      len = sb.st_size;
+      addr = mmap(NULL, len, PROT_READ, MAP_PRIVATE, fd, 0);
+      if (addr != MAP_FAILED) {
+        munmap(addr, len);
+      }
+    }
+    close(fd);
+  }
+  return 0;
+}
+EOF
+  if try $CC -c $CFLAGS $test.c; then
+    CFLAGS="${CFLAGS} -DUSE_MMAP"
+    SFLAGS="${SFLAGS} -DUSE_MMAP"
+    echo "Checking for mmap... Yes." | tee -a configure.log
+  else
+    echo "Checking for mmap... No." | tee -a configure.log
+  fi
 fi
 
 # if --zlib-compat was requested
