@@ -115,6 +115,7 @@ pclmulflag="-mpclmul"
 xopflag="-mxop"
 avxflag="-mavx"
 avx2flag="-mavx2"
+tuneflag=""
 nosse2=0
 nosse3=0
 nossse3=0
@@ -943,6 +944,41 @@ else
    HAVE_AVX2_INTRIN=0
 fi
 
+if test $native -eq 0; then
+# Check for -mtune=native
+cat > $test.c << EOF
+int main(void)
+{
+  return 0;
+}
+EOF
+if test $nosse4 -eq 0 && test ${HAVE_SSE4_1_INTRIN} -eq 1 && try ${CC} ${CFLAGS} -mtune=native $test.c; then
+  echo "Checking for -mtune=native ... Yes." | tee -a configure.log
+  tuneflag="-mtune=native"
+else
+  echo "Checking for -mtune=native ... No." | tee -a configure.log
+fi
+
+# Check for -mtune=intel
+cat > $test.c << EOF
+int main(void)
+{
+  return 0;
+}
+EOF
+if test $nosse4 -eq 0 && test ${HAVE_SSE4_1_INTRIN} -eq 1 && try ${CC} ${CFLAGS} -mtune=intel $test.c; then
+  echo "Checking for -mtune=intel ... Yes." | tee -a configure.log
+  tuneflag="-mtune=intel"
+else
+  echo "Checking for -mtune=intel ... No." | tee -a configure.log
+fi
+
+if test "${tuneflag}" != ""; then
+  CFLAGS="${CFLAGS} ${tuneflag}"
+  SFLAGS="${SFLAGS} ${tuneflag}"
+fi
+fi
+
 # Enable deflate_medium at level 4-5
 if test $without_new_strategies -eq 0; then
     CFLAGS="${CFLAGS} -DMEDIUM_STRATEGY"
@@ -1118,6 +1154,7 @@ echo pclmulflag = $pclmulflag >> configure.log
 echo xopflag = $xopflag >> configure.log
 echo avxflag = $avxflag >> configure.log
 echo avx2flag = $avx2flag >> configure.log
+echo tuneflag = $tuneflag >> configure.log
 echo ARCHDIR = ${ARCHDIR} >> configure.log
 echo ARCH_STATIC_OBJS = ${ARCH_STATIC_OBJS} >> configure.log
 echo ARCH_SHARED_OBJS = ${ARCH_SHARED_OBJS} >> configure.log

@@ -537,6 +537,33 @@ else()
         HAVE_AVX2_INTRIN
     )
 
+    if(HAVE_SSE41_INTRIN AND NOT WITH_NATIVE_INSTRUCTIONS)
+        # Check for -mtune=native
+        set(CMAKE_REQUIRED_FLAGS "-mtune=native")
+        check_c_source_compiles(
+            "int main(void)
+            {
+                return 0;
+            }"
+            HAVE_TUNE_NATIVE
+        )
+
+        # Check for -mtune=intel
+        set(CMAKE_REQUIRED_FLAGS "-mtune=intel")
+        check_c_source_compiles(
+            "int main(void)
+            {
+                return 0;
+            }"
+            HAVE_TUNE_INTEL
+        )
+
+        if(HAVE_TUNE_INTEL)
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mtune=intel")
+        elseif(HAVE_TUNE_NATIVE)
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mtune=native")
+        endif()
+    endif()
 endif()
 
 #
