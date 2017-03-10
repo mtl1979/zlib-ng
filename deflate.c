@@ -600,21 +600,14 @@ unsigned long ZEXPORT deflateBound(z_stream *strm, unsigned long sourceLen) {
     case 2:                                 /* gzip wrapper */
         wraplen = 18;
         if (s->gzhead != NULL) {            /* user-supplied gzip header */
-            unsigned char *str;
             if (s->gzhead->extra != NULL) {
                 wraplen += 2 + s->gzhead->extra_len;
             }
-            str = s->gzhead->name;
-            if (str != NULL) {
-                do {
-                    wraplen++;
-                } while (*str++);
+            if (s->gzhead->name != NULL) {
+                wraplen += (unsigned long) strlen((char *)s->gzhead->name);
             }
-            str = s->gzhead->comment;
-            if (str != NULL) {
-                do {
-                    wraplen++;
-                } while (*str++);
+            if (s->gzhead->comment != NULL) {
+                wraplen += (unsigned long) strlen((char *)s->gzhead->comment);
             }
             if (s->gzhead->hcrc)
                 wraplen += 2;
