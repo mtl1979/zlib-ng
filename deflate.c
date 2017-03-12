@@ -275,9 +275,6 @@ int ZEXPORT deflateInit2_(z_stream *strm, int level, int method, int windowBits,
 
     s->hash_size = 1 << s->hash_bits;
     s->hash_mask = s->hash_size - 1;
-#if !defined(__x86_64) && !defined(__i386_) && !defined(_M_AMD64) && !defined(_M_IX86)
-    s->hash_shift =  ((s->hash_bits+MIN_MATCH-1)/MIN_MATCH);
-#endif
 
 #ifdef X86_PCLMULQDQ_CRC
     window_padding = 8;
