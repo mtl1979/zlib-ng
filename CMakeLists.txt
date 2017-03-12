@@ -43,6 +43,12 @@ check_include_file(stddef.h    HAVE_STDDEF_H)
 set(ARCH ${CMAKE_HOST_SYSTEM_PROCESSOR})
 message(STATUS "Architecture: ${ARCH}")
 
+if (TUNE)
+    add_feature_info(TUNE 1 "Tuned for: ${TUNE}")
+else()
+    set(TUNE "generic" CACHE STRING "Choose the CPU to tune the compiling for, or either \"generic\" or \"intel\".")
+endif()
+
 option (ZLIB_COMPAT "Compile with zlib compatible API" OFF)
 if (ZLIB_COMPAT)
     add_definitions(-DZLIB_COMPAT)
@@ -548,22 +554,41 @@ else()
             HAVE_TUNE_NATIVE
         )
 
-        # Check for -mtune=intel
-        set(CMAKE_REQUIRED_FLAGS "-mtune=intel")
+        if(NOT TUNE)
+            # Check for -mtune=intel
+            set(CMAKE_REQUIRED_FLAGS "-mtune=intel")
+            check_c_source_compiles(
+                "int main(void)
+                 {
+                   return 0;
+                 }"
+                 HAVE_TUNE_INTEL
+            )
+
+            if(HAVE_TUNE_INTEL)
+                set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mtune=intel")
+            elseif(HAVE_TUNE_NATIVE)
+                set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mtune=native")
+            endif()
+        endif()
+    endif()
+    if (TUNE)
+        # Check for -mtune=...
+        set(CMAKE_REQUIRED_FLAGS "-mtune=${TUNE}")
         check_c_source_compiles(
             "int main(void)
             {
                 return 0;
             }"
-            HAVE_TUNE_INTEL
+            HAVE_TUNE_USER
         )
 
-        if(HAVE_TUNE_INTEL)
-            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mtune=intel")
+        if(HAVE_TUNE_USER)
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mtune=${TUNE}")
         elseif(HAVE_TUNE_NATIVE)
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mtune=native")
         endif()
-    endif()
+    endif(TUNE)
 endif()
 
 #
