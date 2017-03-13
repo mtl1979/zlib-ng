@@ -286,7 +286,7 @@ int ZEXPORT deflateInit2_(z_stream *strm, int level, int method, int windowBits,
 
     s->high_water = 0;      /* nothing written to s->window yet */
 
-    s->lit_bufsize = 1 << (memLevel + 6); /* 16K elements by default */
+    s->lit_bufsize = 1 << (memLevel + 7); /* 32K elements by default */
 
     overlay = (uint16_t *) ZALLOC(strm, s->lit_bufsize, sizeof(uint16_t)+2);
     s->pending_buf = (unsigned char *) overlay;
