@@ -48,10 +48,7 @@ static inline Pos insert_string_c(deflate_state *const s, const Pos str, unsigne
 
     for (p = str; p <= lp; p++) {
         UPDATE_HASH(s, h, p);
-        if (s->head[h] != p) {
-            s->prev[p & s->w_mask] = s->head[h];
-            s->head[h] = p;
-        }
+        UPDATE_PREV(s, h, p);
     }
     s->ins_h = h;
     return s->prev[lp & s->w_mask];
