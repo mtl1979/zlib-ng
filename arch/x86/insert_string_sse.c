@@ -48,10 +48,7 @@ Pos insert_string_sse(deflate_state *const s, const Pos str, unsigned int count)
 
         hm = h & s->hash_mask; /* masked hash value */
 
-        if (s->head[hm] != p) {
-            s->prev[p & s->w_mask] = s->head[hm];
-            s->head[hm] = p;
-        }
+        UPDATE_PREV(s, hm, p);
     }
     return s->prev[lp & s->w_mask];
 }

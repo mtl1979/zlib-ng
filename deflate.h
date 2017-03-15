@@ -411,6 +411,14 @@ void ZLIB_INTERNAL bi_windup(deflate_state *s);
 
 #define UPDATE_HASH(s, h, i) (h = crc32_z(0, (s->window + i), MIN_MATCH) & s->hash_mask)
 
+#define UPDATE_PREV(s, h, i) \
+  do {\
+      if (s->head[h] != i) {\
+          s->prev[i & s->w_mask] = s->head[h];\
+          s->head[h] = i;\
+      }\
+  } while (0)
+
 #ifndef ZLIB_DEBUG
 #  define send_code(s, c, tree) send_bits(s, tree[c].Code, tree[c].Len)
 /* Send a code of the given tree. c and tree must not have side effects */
