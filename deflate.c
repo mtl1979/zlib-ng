@@ -133,7 +133,7 @@ static const config configuration_table[10] = {
 #  else
 /* 4 */ {4,    8, 16,   16, deflate_medium},  /* lazy matches */
 /* 5 */ {8,   16, 64,  128, deflate_medium},
-/* 6 */ {8,   16, 128, 128, deflate_slow},
+/* 6 */ {8,   16, 128, 128, deflate_medium},
 #  endif /* NOT_TWEAK_COMPILER */
 #else
 /* 4 */ {4,   12, 32,   32, deflate_slow},  /* lazy matches */
