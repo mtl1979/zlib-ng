@@ -16,7 +16,16 @@ void ZLIB_INTERNAL inflate_fast(z_stream *strm, unsigned long start);
 #if (defined(__GNUC__) || defined(__clang__)) && defined(__ARM_NEON__)
 #  include <arm_neon.h>
 typedef uint8x16_t inffast_chunk_t;
-#  define INFFAST_CHUNKSIZE sizeof(inffast_chunk_t)
+#elif defined(HAVE_SSE2_INTRIN) && defined(X86_64)
+#  ifdef _MSC_VER
+#    include <intrin.h>
+#  else
+#    include <x86intrin.h>
+#  endif
+typedef __m128i inffast_chunk_t;
 #endif
 
+#ifdef inffast_chunk_t
+#  define INFFAST_CHUNKSIZE sizeof(inffast_chunk_t)
+#endif
 #endif /* INFFAST_H_ */

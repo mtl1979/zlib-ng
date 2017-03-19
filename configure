@@ -814,6 +814,8 @@ EOF
 if test $nosse2 -eq 0 && try ${CC} ${CFLAGS} ${sse2flag} $test.c; then
     echo "Checking for SSE2 intrinsics ... Yes." | tee -a configure.log
     HAVE_SSE2_INTRIN=1
+    CFLAGS="$CFLAGS -DHAVE_SSE2_INTRIN"
+    SFLAGS="$SFLAGS -DHAVE_SSE2_INTRIN"
 else
     echo "Checking for SSE2 intrinsics ... No." | tee -a configure.log
     HAVE_SSE2_INTRIN=0
