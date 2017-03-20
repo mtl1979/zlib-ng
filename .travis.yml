@@ -8,6 +8,7 @@ install:
   - sudo apt-get install gcc-multilib
 env:
   - BUILDDIR=. TOOL="./configure"
+  - BUILDDIR=. TOOL="./configure --asserts"
   - BUILDDIR=. TOOL="./configure --native"
   - BUILDDIR=. TOOL="./configure --zlib-compat"
   - BUILDDIR=. TOOL="./configure --zlib-compat --without-optimizations --without-new-strategies"

@@ -90,7 +90,9 @@ unsigned long ZEXPORT zlibCompileFlags(void)
 #    define verbose 0
 #  endif
 int ZLIB_INTERNAL z_verbose = verbose;
+#endif
 
+#if defined(ENABLE_ASSERTS) || defined(ZLIB_DEBUG)
 void ZLIB_INTERNAL z_error (m)
     char *m;
 {

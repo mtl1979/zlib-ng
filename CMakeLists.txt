@@ -287,6 +287,8 @@ add_feature_info(ZLIB_COMPAT ZLIB_COMPAT "Provide a zlib-compatible API")
 add_feature_info(WITH_GZFILEOP WITH_GZFILEOP "Compile with support for gzFile-related functions")
 add_feature_info(WITH_OPTIM WITH_OPTIM "Build with optimisation")
 add_feature_info(WITH_NEW_STRATEGIES WITH_NEW_STRATEGIES "Use new strategies")
+add_feature_info(WITH_ASSERTS WITH_ASSERTS "Enable asserts")
+
 if("${ARCH}" MATCHES "arm" OR "${ARCH}" MATCHES "aarch64")
     add_feature_info(WITH_ACLE WITH_ACLE "Build with ACLE CRC")
     add_feature_info(WITH_NEON WITH_NEON "Build with NEON intrinsics")
@@ -443,6 +445,10 @@ macro(check_c_source_compile_or_run source flag)
 endmacro(check_c_source_compile_or_run)
 
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DZLIB_DEBUG")
+
+if(WITH_ASSERTS)
+  add_definitions(-DENABLE_ASSERTS)
+endif()
 
 if(MSVC)
     set(CMAKE_DEBUG_POSTFIX "d")

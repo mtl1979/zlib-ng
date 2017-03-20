@@ -133,6 +133,7 @@ without_new_strategies=0
 gcc=0
 warn=0
 debug=0
+asserts=0
 old_cc="$CC"
 old_cflags="$CFLAGS"
 OBJC='$(OBJZ)'
@@ -162,6 +163,7 @@ case "$1" in
     -h* | --help)
       echo 'usage:' | tee -a configure.log
       echo '  configure [--zlib-compat] [--prefix=PREFIX]  [--eprefix=EXPREFIX]' | tee -a configure.log
+      echo '    [--asserts] [--debug] [--warn]' | tee -a configure.log
       echo '    [--static] [--32] [--64] [--libdir=LIBDIR] [--sharedlibdir=LIBDIR]' | tee -a configure.log
       echo '    [--includedir=INCLUDEDIR] [--archs="-arch i386 -arch x86_64"]' | tee -a configure.log
       echo '    [--native] [--no-sse2] [--no-sse3] [--no-ssse3] [--no-sse4]' | tee -a configure.log
@@ -215,6 +217,7 @@ case "$1" in
     -oldstrat | --without-new-strategies) without_new_strategies=1; shift;;
     -w* | --warn) warn=1; shift ;;
     -d* | --debug) debug=1; shift ;;
+    --asserts) asserts=1; shift ;;
     *)
       echo "unknown option: $1" | tee -a configure.log
       echo "$0 --help for help" | tee -a configure.log
@@ -320,6 +323,10 @@ if test "$gcc" -eq 1 && ($cc $CFLAGS -c $test.c) >> configure.log 2>&1; then
   if test $debug -eq 1; then
     CFLAGS="${CFLAGS} -DZLIB_DEBUG"
     SFLAGS="${SFLAGS} -DZLIB_DEBUG"
+  fi
+  if test $asserts -eq 1; then
+    CFLAGS="${CFLAGS} -DENABLE_ASSERTS"
+    SFLAGS="${SFLAGS} -DENABLE_ASSERTS"
   fi
   if test -z "$uname"; then
     uname=`(uname -s || echo unknown) 2>/dev/null`

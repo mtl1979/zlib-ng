@@ -136,18 +136,22 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
          /* functions */
 
 /* Diagnostic functions */
-#ifdef ZLIB_DEBUG
+#if defined(ENABLE_ASSERTS) || defined(ZLIB_DEBUG)
 #   include <stdio.h>
-    extern int ZLIB_INTERNAL z_verbose;
     extern void ZLIB_INTERNAL z_error(char *m);
 #   define Assert(cond, msg) {if(!(cond)) z_error(msg);}
+#else
+#   define Assert(cond, msg)
+#endif
+
+#ifdef ZLIB_DEBUG
+    extern int ZLIB_INTERNAL z_verbose;
 #   define Trace(x) {if (z_verbose >= 0) fprintf x;}
 #   define Tracev(x) {if (z_verbose > 0) fprintf x;}
 #   define Tracevv(x) {if (z_verbose > 1) fprintf x;}
 #   define Tracec(c, x) {if (z_verbose > 0 && (c)) fprintf x;}
 #   define Tracecv(c, x) {if (z_verbose > 1 && (c)) fprintf x;}
 #else
-#   define Assert(cond, msg)
 #   define Trace(x)
 #   define Tracev(x)
 #   define Tracevv(x)
