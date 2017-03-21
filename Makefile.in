@@ -326,9 +326,6 @@ arch/arm/adler32_neon.o: $(SRCDIR)/arch/arm/adler32_neon.h $(SRCDIR)/zlib.h zcon
 arch/arm/crc32_acle.o: zconf.h
 arch/arm/fill_window_arm.o: $(SRCDIR)/deflate.h $(SRCDIR)/deflate_p.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
 arch/arm/insert_string_acle.o: $(SRCDIR)/deflate.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
-arch/x86/adler32_sse3.o: $(SRCDIR)/arch/x86/adler32_sse3.h $(SRCDIR)/arch/x86/adler32_intrin.h $(SRCDIR)/arch/x86/adler32_x86.h $(SRCDIR)/zlib.h zconf.h
-arch/x86/adler32_ssse3.o: $(SRCDIR)/arch/x86/adler32_ssse3.h $(SRCDIR)/arch/x86/adler32_intrin.h $(SRCDIR)/arch/x86/adler32_x86.h $(SRCDIR)/zlib.h zconf.h
-arch/x86/adler32_sse4.o: $(SRCDIR)/arch/x86/adler32_sse4.h $(SRCDIR)/arch/x86/adler32_intrin.h $(SRCDIR)/arch/x86/adler32_x86.h $(SRCDIR)/zlib.h zconf.h
 arch/x86/adler32_x86.o: $(SRCDIR)/arch/x86/adler32_x86.h $(SRCDIR)/zlib.h zconf.h
 arch/x86/adler32_xop.o: $(SRCDIR)/arch/x86/adler32_xop.h $(SRCDIR)/arch/x86/adler32_intrin.h $(SRCDIR)/arch/x86/adler32_x86.h $(SRCDIR)/zlib.h zconf.h
 arch/x86/crc_folding.o: $(SRCDIR)/arch/x86/crc_folding.h $(SRCDIR)/deflate.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
@@ -359,9 +356,6 @@ arch/arm/adler32_neon.o: $(SRCDIR)/arch/arm/adler32_neon.h $(SRCDIR)/zlib.h zcon
 arch/arm/crc32_acle.lo: zconf.h
 arch/arm/fill_window_arm.lo: $(SRCDIR)/deflate.h $(SRCDIR)/deflate_p.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
 arch/arm/insert_string_acle.lo: $(SRCDIR)/deflate.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h
-arch/x86/adler32_sse3.lo: $(SRCDIR)/arch/x86/adler32_sse3.h $(SRCDIR)/arch/x86/adler32_intrin.h $(SRCDIR)/arch/x86/adler32_x86.h $(SRCDIR)/zlib.h zconf.h
-arch/x86/adler32_ssse3.lo: $(SRCDIR)/arch/x86/adler32_ssse3.h $(SRCDIR)/arch/x86/adler32_intrin.h $(SRCDIR)/arch/x86/adler32_x86.h $(SRCDIR)/zlib.h zconf.h
-arch/x86/adler32_sse4.lo: $(SRCDIR)/arch/x86/adler32_sse4.h $(SRCDIR)/arch/x86/adler32_intrin.h $(SRCDIR)/arch/x86/adler32_x86.h $(SRCDIR)/zlib.h zconf.h
 arch/x86/adler32_x86.lo: $(SRCDIR)/arch/x86/adler32_x86.h $(SRCDIR)/zlib.h zconf.h
 arch/x86/adler32_xop.lo: $(SRCDIR)/arch/x86/adler32_xop.h $(SRCDIR)/arch/x86/adler32_intrin.h $(SRCDIR)/arch/x86/adler32_x86.h $(SRCDIR)/zlib.h zconf.h
 arch/x86/crc_folding.lo: $(SRCDIR)/arch/x86/crc_folding.h $(SRCDIR)/deflate.h $(SRCDIR)/zutil.h $(SRCDIR)/zlib.h zconf.h

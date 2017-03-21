@@ -1061,27 +1061,6 @@ case "${ARCH}" in
                 ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} fill_window_sse.lo"
             fi
 
-            if test ${HAVE_SSE3_INTRIN} -eq 1; then
-                CFLAGS="${CFLAGS} -DX86_SSE3_ADLER32"
-                SFLAGS="${SFLAGS} -DX86_SSE3_ADLER32"
-                ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS} adler32_sse3.o"
-                ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} adler32_sse3.lo"
-            fi
-
-            if test ${HAVE_SSSE3_INTRIN} -eq 1; then
-                CFLAGS="${CFLAGS} -DX86_SSSE3_ADLER32"
-                SFLAGS="${SFLAGS} -DX86_SSSE3_ADLER32"
-                ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS} adler32_ssse3.o"
-                ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} adler32_ssse3.lo"
-            fi
-
-            if test ${HAVE_SSE4_1_INTRIN} -eq 1; then
-                CFLAGS="${CFLAGS} -DX86_SSE4_ADLER32"
-                SFLAGS="${SFLAGS} -DX86_SSE4_ADLER32"
-                ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS} adler32_sse4.o"
-                ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} adler32_sse4.lo"
-            fi
-
             if test ${HAVE_XOP_INTRIN} -eq 1; then
                 CFLAGS="${CFLAGS} -DX86_XOP_ADLER32"
                 SFLAGS="${SFLAGS} -DX86_XOP_ADLER32"
