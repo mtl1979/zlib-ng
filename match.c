@@ -68,7 +68,7 @@ ZLIB_INTERNAL unsigned longest_match(deflate_state *const s, IPos cur_match) {
         chain_length >>= 2;
 
     /*
-     * Do not looks for matches beyond the end of the input. This is
+     * Do not look for matches beyond the end of the input. This is
      * necessary to make deflate deterministic
      */
     nice_match = (unsigned int)s->nice_match > s->lookahead ? s->lookahead : s->nice_match;
@@ -188,7 +188,7 @@ ZLIB_INTERNAL unsigned longest_match(deflate_state *const s, IPos cur_match) {
         chain_length >>= 2;
 
     /*
-     * Do not looks for matches beyond the end of the input. This is
+     * Do not look for matches beyond the end of the input. This is
      * necessary to make deflate deterministic
      */
     nice_match = (unsigned int)s->nice_match > s->lookahead ? s->lookahead : s->nice_match;
