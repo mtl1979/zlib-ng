@@ -248,7 +248,11 @@ EOF
 
 test -z "$CC" && echo Checking for ${CROSS_PREFIX}gcc... | tee -a configure.log
 cc=${CC-${CROSS_PREFIX}gcc}
-cflags=${CFLAGS-"-O3"}
+if test "${ARCH}" = "powerpc"; then
+  cflags=${CFLAGS-"-Os"}
+else
+  cflags=${CFLAGS-"-O3"}
+fi
 case "$cc" in
   *gcc*) gcc=1 ;;
   *clang*) gcc=1 ;;
@@ -306,7 +310,11 @@ if test "$gcc" -eq 1 && ($cc $CFLAGS -c $test.c) >> configure.log 2>&1; then
         uname=aarch64
       fi ;;
   esac
-  CFLAGS="${CFLAGS--O3}"
+  if test "${ARCH}" = "powerpc"; then
+    CFLAGS="${CFLAGS--Os}"
+  else
+    CFLAGS="${CFLAGS--O3}"
+  fi
   if test -n "${ARCHS}"; then
     CFLAGS="${CFLAGS} ${ARCHS}"
     LDFLAGS="${LDFLAGS} ${ARCHS}"
