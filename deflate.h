@@ -121,7 +121,7 @@ typedef struct internal_state {
 
                 /* used by deflate.c: */
 
-    unsigned int  w_size;            /* LZ77 window size (32K by default) */
+    uint16_t      w_size;            /* LZ77 window size (32K by default) */
     unsigned int  w_bits;            /* log2(w_size)  (8..16) */
     unsigned int  w_mask;            /* w_size - 1 */
 

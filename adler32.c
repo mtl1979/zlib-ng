@@ -13,6 +13,12 @@ uint32_t adler32_c(uint32_t adler, const unsigned char *buf, size_t len);
 # include "arch/x86/adler32_x86.h"
 #elif (defined(__ARM_NEON__) || defined(__ARM_NEON))
 extern uint32_t adler32_neon(uint32_t adler, const unsigned char *buf, size_t len);
+#elif defined(HAVE_PPC_ALTIVEC)
+#include <sys/auxv.h>
+extern uint32_t adler32_vmx(uint32_t adler, const unsigned char *buf, size_t len);
+# if defined(HAVE_PPC_P8V)
+extern uint32_t adler32_vsx(uint32_t adler, const unsigned char *buf, size_t len);
+# endif
 #endif
 
 static uint32_t adler32_combine_(uint32_t adler1, uint32_t adler2, z_off64_t len2);
@@ -156,6 +162,14 @@ uint32_t ZEXPORT adler32_z(uint32_t adler, const unsigned char *buf, size_t len)
 #elif (defined(__ARM_NEON__) || defined(__ARM_NEON))
     return adler32_neon(adler, buf, len);
 #else
+# if defined(HAVE_PPC_ALTIVEC)
+#  if defined(HAVE_PPC_P8V)
+    if (getauxval(AT_HWCAP2) & PPC_FEATURE2_ARCH_2_07)
+        return adler32_vsx(adler, buf, len);
+#  endif
+    if (getauxval(AT_HWCAP) & PPC_FEATURE_HAS_ALTIVEC)
+        return adler32_vmx(adler, buf, len);
+# endif
     return adler32_c(adler, buf, len);
 #endif
 }

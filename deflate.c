@@ -1153,7 +1153,11 @@ extern void fill_window_avx(deflate_state *s);
 extern void fill_window_sse(deflate_state *s);
 #elif defined(__arm__) || defined(__aarch64__) || defined(_M_ARM)
 extern void fill_window_arm(deflate_state *s);
+#elif defined(HAVE_PPC_ALTIVEC)
+# include <sys/auxv.h>
+extern void fill_window_vmx(deflate_state *s);
 #endif
+
 void fill_window_c(deflate_state *s);
 
 void fill_window(deflate_state *s) {
@@ -1175,6 +1179,12 @@ void fill_window(deflate_state *s) {
 
 #elif defined(__arm__) || defined(__aarch64__) || defined(_M_ARM)
     fill_window_arm(s);
+#elif defined(HAVE_PPC_ALTIVEC)
+    if (getauxval(AT_HWCAP) & PPC_FEATURE_HAS_ALTIVEC) {
+        fill_window_vmx(s);
+    } else {
+        fill_window_c(s);
+    }
 #else
     fill_window_c(s);
 #endif

@@ -614,6 +614,45 @@ else()
         HAVE_AVX2_INTRIN
     )
 
+    if("${ARCH}" MATCHES "powerpc" OR "${ARCH}" MATCHES "ppc")
+        set(CMAKE_REQUIRED_FLAGS "-maltivec")
+        check_c_source_compiles(
+            "#include <altivec.h>
+            int main(void)
+            {
+                vector int a = vec_splats(0);
+                vector int b = vec_splats(0);
+                a = vec_add(a, b);
+                return 0;
+            }"
+            HAVE_ALTIVEC
+        )
+        set(CMAKE_REQUIRED_FLAGS "-mvsx")
+        check_c_source_compiles(
+            "#include <altivec.h>
+            int main(void)
+            {
+                vector long a = vec_splats(0L);
+                vector long b = vec_splats(0L);
+                a = vec_add(a, b);
+                return 0;
+            }"
+            HAVE_VSX
+        )
+        set(CMAKE_REQUIRED_FLAGS "-mpower8-vector")
+        check_c_source_compiles(
+            "#include <altivec.h>
+            int main(void)
+            {
+                vector unsigned long long a = vec_splats(0ULL);
+                vector unsigned long long b = vec_splats(0ULL);
+                a = vec_add(a, b);
+                return 0;
+            }"
+            HAVE_P8V
+        )
+    endif()
+
     if(HAVE_SSE41_INTRIN AND NOT WITH_NATIVE_INSTRUCTIONS)
         # Check for -mtune=native
         set(CMAKE_REQUIRED_FLAGS "-mtune=native")
@@ -700,6 +739,8 @@ elseif("${ARCH}" MATCHES "arm")
 elseif("${ARCH}" MATCHES "aarch64")
     set(ARCHDIR "arch/aarch64")
     add_definitions(-DUNALIGNED_OK -DUNROLL_LESS)
+elseif("${ARCH}" MATCHES "powerpc" OR "${ARCH}" MATCHES "ppc")
+    set(ARCHDIR "arch/powerpc")
 else()
     set(ARCHDIR "arch/x86")
     add_definitions(-DX86 -DUNALIGNED_OK -DUNROLL_LESS)
@@ -783,6 +824,22 @@ if(WITH_OPTIM)
             set(ZLIB_ARCH_SRCS ${ZLIB_ARCH_SRCS} ${ARCHDIR}/fill_window_avx.c)
             add_feature_info(AVX_FILL_WINDOW 1 "Support AVX2-accelerated fill_window using \"${AVX2FLAG}\".")
             add_intrinsics_option(${AVX2FLAG})
+        endif()
+    elseif("${ARCHDIR}" MATCHES "arch/powerpc")
+        if(WITH_ALTIVEC AND HAVE_ALTIVEC)
+            add_definitions(-DHAVE_PPC_ALTIVEC)
+            set(ZLIB_ARCH_SRCS ${ZLIB_ARCH_SRCS} ${ARCHDIR}/adler32_vmx.c ${ARCHDIR}/fill_window_vmx.c)
+            add_feature_info(ALTIVEC 1 "Support the AltiVec instruction set, using \"-maltivec\"")
+            add_intrinsics_option("-maltivec")
+        endif()
+        if(WITH_VSX AND HAVE_VSX)
+            add_definitions(-DHAVE_PPC_VSX)
+            if(HAVE_P8V)
+                add_definitions(-DHAVE_PPC_P8V)
+                set(ZLIB_ARCH_SRCS ${ZLIB_ARCH_SRCS} ${ARCHDIR}/adler32_vsx.c)
+                add_feature_info(P8V 1 "Support Power8 vector accelerated adler32, using \"-mpower8-vector\"")
+                add_intrinsics_option("-mpower8-vector")
+            endif()
         endif()
     endif()
 endif()

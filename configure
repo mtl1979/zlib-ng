@@ -128,6 +128,9 @@ nopclmul=0
 noxop=0
 noavx=0
 noavx2=0
+noaltivec=1
+novsx=1
+nop8v=1
 without_optimizations=0
 without_new_strategies=0
 gcc=0
@@ -169,6 +172,7 @@ case "$1" in
       echo '    [--native] [--no-sse2] [--no-sse3] [--no-ssse3] [--no-sse4]' | tee -a configure.log
       echo '    [--no-pclmul] [--no-xop] [--no-avx] [--no-avx2]' | tee -a configure.log
       echo '    [--acle] [--neon]' | tee -a configure.log
+      echo '    [--altivec] [--vsx] [--power8]' | tee -a configure.log
       echo '    [--max-instruction-set=INSTRUCTION_SET]' | tee -a configure.log
       echo '    [--tune=generic|intel|<cpu>]' | tee -a configure.log
         exit 0 ;;
@@ -210,6 +214,9 @@ case "$1" in
                esac
                shift ;;
     --tune=*) tune=`echo $1 | sed 's/.*=//'` ; shift ;;
+    --altivec) noaltivec=0 ; shift ;;
+    --vsx) novsx=0 ; shift ;;
+    --power8) nop8v=0; shift ;;
     -a*=* | --archs=*) ARCHS=`echo $1 | sed 's/.*=//'`; shift ;;
     --sysconfdir=*) echo "ignored option: --sysconfdir" | tee -a configure.log; shift ;;
     --localstatedir=*) echo "ignored option: --localstatedir" | tee -a configure.log; shift ;;
@@ -988,6 +995,69 @@ else
    HAVE_AVX2_INTRIN=0
 fi
 
+if test "${ARCH}" = "powerpc" || test "${ARCH}" = "ppc" || test "${ARCH}" = "powerpc64le" || test "${ARCH}" = "ppc64"; then
+cat > $test.c << EOF
+#include <altivec.h>
+int main(void)
+{
+    vector int a = vec_splats(0);
+    vector int b = vec_splats(0);
+    a = vec_add(a, b);
+    return 0;
+}
+EOF
+if test $noaltivec -eq 0 && try ${CC} ${CFLAGS} -maltivec $test.c; then
+    echo "Checking for AltiVec intrinsics ... Yes." | tee -a configure.log
+    CFLAGS="${CFLAGS} -DHAVE_PPC_ALTIVEC"
+    SFLAGS="${SFLAGS} -DHAVE_PPC_ALTIVEC"
+    HAVE_ALTIVEC_INTRIN=1
+else
+    echo "Checking for AltiVec intrinsics ... No." | tee -a configure.log
+    HAVE_ALTIVEC_INTRIN=0
+fi
+
+cat > $test.c << EOF
+#include <altivec.h>
+int main(void)
+{
+    vector long a = vec_splats(0L);
+    vector long b = vec_splats(0L);
+    a = vec_add(a, b);
+    return 0;
+}
+EOF
+if test $novsx -eq 0 && try ${CC} ${CFLAGS} -mvsx $test.c; then
+    echo "Checking for VSX intrinsics ... Yes." | tee -a configure.log
+    CFLAGS="${CFLAGS} -DHAVE_PPC_VSX"
+    SFLAGS="${SFLAGS} -DHAVE_PPC_VSX"
+    HAVE_VSX_INTRIN=1
+else
+    echo "Checking for VSX intrinsics ... No." | tee -a configure.log
+    HAVE_VSX_INTRIN=0
+fi
+
+cat > $test.c << EOF
+#include <altivec.h>
+int main(void)
+{
+    vector unsigned long long a = vec_splats(0ULL);
+    vector unsigned long long b = vec_splats(0ULL);
+    a = vec_add(a, b);
+    return 0;
+}
+EOF
+if test $nop8v -eq 0 && try ${CC} ${CFLAGS} -mpower8-vector $test.c; then
+  echo "Checking for Power8 vector instructions... Yes." | tee -a configure.log
+  CFLAGS="${CFLAGS} -DHAVE_PPC_P8V"
+  SFLAGS="${SFLAGS} -DHAVE_PPC_P8V"
+  HAVE_P8V_INTRIN=1
+else
+  echo "Checking for Power8 vector instructions... No." | tee -a configure.log
+  HAVE_P8V_INTRIN=0
+fi
+
+fi
+
 if test $native -eq 0; then
 # Check for -mtune=native
 cat > $test.c << EOF
@@ -1189,6 +1259,17 @@ case "${ARCH}" in
     fi
     CFLAGS="-march=${ARCH} ${CFLAGS} -DUNALIGNED_OK -DUNROLL_LESS"
     SFLAGS="-march=${ARCH} ${SFLAGS} -DUNALIGNED_OK -DUNROLL_LESS"
+    ;;
+    powerpc | powerpc64le | ppc | ppc64)
+    ARCHDIR=arch/powerpc
+    if test $HAVE_ALTIVEC_INTRIN -eq 1; then
+      ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS} adler32_vmx.o fill_window_vmx.o"
+      ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} adler32_vmx.lo fill_window_vmx.lo"
+    fi
+    if test $HAVE_P8V_INTRIN -eq 1; then
+      ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS} adler32_vsx.o"
+      ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} adler32_vsx.lo"
+    fi
     ;;
 esac
 
