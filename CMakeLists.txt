@@ -341,6 +341,21 @@ else()
     else()
         set(HAVE_PCLMULQDQ_INTRIN NO)
     endif()
+
+    if("${ARCH}" MATCHES "powerpc" OR "${ARCH}" MATCHES "ppc")
+        set(CMAKE_REQUIRED_FLAGS "-maltivec")
+        check_c_source_compiles(
+            "#include <altivec.h>
+            int main(void)
+            {
+                vector int a = vec_splats(0);
+                vector int b = vec_splats(0);
+                a = vec_add(a, b);
+                return 0;
+            }"
+            HAVE_ALTIVEC
+        )
+    endif()
 endif()
 
 #
@@ -381,6 +396,8 @@ elseif("${ARCH}" MATCHES "arm")
 elseif("${ARCH}" MATCHES "aarch64")
     set(ARCHDIR "arch/aarch64")
     add_definitions(-DUNALIGNED_OK -DUNROLL_LESS)
+elseif("${ARCH}" MATCHES "powerpc" OR "${ARCH}" MATCHES "ppc")
+    set(ARCHDIR "arch/powerpc")
 else()
     set(ARCHDIR "arch/x86")
     add_definitions(-DX86 -DUNALIGNED_OK -DUNROLL_LESS)
@@ -451,6 +468,13 @@ if(WITH_OPTIM)
             else()
                 add_feature_info(PCLMUL_CRC 1 "Support CRC hash generation using PCLMULQDQ, using \"${PCLMULFLAG} ${SSE4FLAG}\"")
             endif()
+        endif()
+    elseif("${ARCHDIR}" MATCHES "arch/powerpc")
+        if(WITH_ALTIVEC AND HAVE_ALTIVEC)
+            add_definitions(-DHAVE_PPC_ALTIVEC)
+            set(ZLIB_ARCH_SRCS ${ZLIB_ARCH_SRCS} ${ARCHDIR}/adler32_vmx.c ${ARCHDIR}/fill_window_vmx.c)
+            add_feature_info(ALTIVEC 1 "Support the AltiVec instruction set, using \"-maltivec\"")
+            add_intrinsics_option("-maltivec")
         endif()
     endif()
 endif()

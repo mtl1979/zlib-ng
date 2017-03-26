@@ -1,0 +1,49 @@
+# Makefile for zlib
+# Copyright (C) 1995-2013 Jean-loup Gailly, Mark Adler
+# For conditions of distribution and use, see copyright notice in zlib.h
+
+CC=
+CFLAGS=
+SFLAGS=
+INCLUDES=
+
+SRCDIR=.
+SRCTOP=../..
+TOPDIR=$(SRCTOP)
+
+all: adler32_vmx.o adler32_vmx.lo fill_window_vmx.o fill_window_vmx.lo
+
+adler32_vmx.o: $(SRCDIR)/adler32_vmx.c
+	$(CC) $(CFLAGS) -maltivec $(INCLUDES) -c -o $@ $(SRCDIR)/adler32_vmx.c
+
+adler32_vmx.lo: $(SRCDIR)/adler32_vmx.c
+	$(CC) $(SFLAGS) -maltivec -DPIC $(INCLUDES) -c -o $@ $(SRCDIR)/adler32_vmx.c
+
+fill_window_vmx.o: $(SRCDIR)/fill_window_vmx.c
+	$(CC) $(CFLAGS) -maltivec $(INCLUDES) -c -o $@ $(SRCDIR)/fill_window_vmx.c
+
+fill_window_vmx.lo: $(SRCDIR)/fill_window_vmx.c
+	$(CC) $(SFLAGS) -maltivec -DPIC $(INCLUDES) -c -o $@ $(SRCDIR)/fill_window_vmx.c
+
+mostlyclean: clean
+clean:
+	rm -f *.o *.lo *~
+	rm -rf objs
+	rm -f *.gcda *.gcno *.gcov
+
+distclean:
+	rm -f Makefile
+
+depend:
+	makedepend -Y -- $(CFLAGS) -- $(SRCDIR)/*.c
+	makedepend -Y -a -o.lo -- $(SFLAGS) -- $(SRCDIR)/*.c
+	@sed "s=^$(SRCDIR)/\([a-zA-Z0-9_]*\.\(lo\|o\):\)=\1=g" < Makefile > Makefile.tmp
+	@mv -f Makefile.tmp Makefile
+
+# DO NOT DELETE THIS LINE -- make depend depends on it.
+
+adler32_vmx.o: $(SRCTOP)/zlib.h $(SRCTOP)/zutil.h $(TOPDIR)/zconf.h
+fill_window_vmx.o: $(SRCTOP)/deflate.h $(SRCTOP)/deflate_p.h $(SRCTOP)/functable.h $(SRCTOP)/zutil.h $(SRCTOP)/zlib.h $(TOPDIR)/zconf.h
+
+adler32_vmx.lo: $(SRCTOP)/zlib.h $(SRCTOP)/zutil.h $(TOPDIR)/zconf.h
+fill_window_vmx.lo: $(SRCTOP)/deflate.h $(SRCTOP)/deflate_p.h $(SRCTOP)/functable.h $(SRCTOP)/zutil.h $(SRCTOP)/zlib.h $(TOPDIR)/zconf.h

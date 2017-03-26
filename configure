@@ -103,6 +103,7 @@ native=0
 sse2flag="-msse2"
 sse4flag="-msse4"
 pclmulflag="-mpclmul"
+noaltivec=1
 without_optimizations=0
 without_new_strategies=0
 gcc=0
@@ -140,6 +141,7 @@ case "$1" in
       echo '    [--static] [--32] [--64] [--libdir=LIBDIR] [--sharedlibdir=LIBDIR]' | tee -a configure.log
       echo '    [--includedir=INCLUDEDIR] [--archs="-arch i386 -arch x86_64"]' | tee -a configure.log
       echo '    [--acle] [--neon]' | tee -a configure.log
+      echo '    [--altivec]' | tee -a configure.log
         exit 0 ;;
     -p*=* | --prefix=*) prefix=`echo $1 | sed 's/.*=//'`; shift ;;
     -e*=* | --eprefix=*) exec_prefix=`echo $1 | sed 's/.*=//'`; shift ;;
@@ -160,6 +162,7 @@ case "$1" in
     --acle) buildacle=1; shift ;;
     --neon) buildneon=1; shift ;;
     -n | --native) native=1; shift ;;
+    --altivec) noaltivec=0 ; shift ;;
     -a*=* | --archs=*) ARCHS=`echo $1 | sed 's/.*=//'`; shift ;;
     --sysconfdir=*) echo "ignored option: --sysconfdir" | tee -a configure.log; shift ;;
     --localstatedir=*) echo "ignored option: --localstatedir" | tee -a configure.log; shift ;;
@@ -781,6 +784,29 @@ else
     HAVE_PCLMULQDQ_INTRIN=0
 fi
 
+if test "${ARCH}" = "powerpc" || test "${ARCH}" = "ppc"; then
+cat > $test.c << EOF
+#include <altivec.h>
+int main(void)
+{
+    vector int a = vec_splats(0);
+    vector int b = vec_splats(0);
+    a = vec_add(a, b);
+    return 0;
+}
+EOF
+if test $noaltivec -eq 0 && try ${CC} ${CFLAGS} -maltivec $test.c; then
+    echo "Checking for AltiVec intrinsics ... Yes." | tee -a configure.log
+    CFLAGS="${CFLAGS} -DHAVE_PPC_ALTIVEC"
+    SFLAGS="${SFLAGS} -DHAVE_PPC_ALTIVEC"
+    HAVE_ALTIVEC_INTRIN=1
+else
+    echo "Checking for AltiVec intrinsics ... No." | tee -a configure.log
+    HAVE_ALTIVEC_INTRIN=0
+fi
+
+fi
+
 # Enable deflate_medium at level 4-6
 if test $without_new_strategies -eq 0; then
     CFLAGS="${CFLAGS} -DMEDIUM_STRATEGY"
@@ -943,6 +969,13 @@ case "${ARCH}" in
         fi
         CFLAGS="-march=${ARCH} ${CFLAGS} -DUNALIGNED_OK -DUNROLL_LESS"
         SFLAGS="-march=${ARCH} ${SFLAGS} -DUNALIGNED_OK -DUNROLL_LESS"
+    ;;
+    powerpc | ppc)
+        ARCHDIR=arch/powerpc
+        if test $HAVE_ALTIVEC_INTRIN -eq 1; then
+            ARCH_STATIC_OBJS="${ARCH_STATIC_OBJS} adler32_vmx.o fill_window_vmx.o"
+            ARCH_SHARED_OBJS="${ARCH_SHARED_OBJS} adler32_vmx.lo fill_window_vmx.lo"
+        fi
     ;;
 esac
 
