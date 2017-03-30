@@ -289,10 +289,6 @@ add_feature_info(WITH_OPTIM WITH_OPTIM "Build with optimisation")
 add_feature_info(WITH_NEW_STRATEGIES WITH_NEW_STRATEGIES "Use new strategies")
 add_feature_info(WITH_ASSERTS WITH_ASSERTS "Enable asserts")
 
-if("${ARCH}" MATCHES "arm" OR "${ARCH}" MATCHES "aarch64")
-    add_feature_info(WITH_ACLE WITH_ACLE "Build with ACLE CRC")
-    add_feature_info(WITH_NEON WITH_NEON "Build with NEON intrinsics")
-endif()
 if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "x86_64" OR "${CMAKE_SYSTEM_PROCESSOR}" MATCHES "AMD64")
     if (__GNUC__ AND USE_32BIT)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
@@ -662,6 +658,38 @@ else()
     endif(TUNE)
 endif()
 
+if("${ARCH}" MATCHES "arm" OR "${ARCH}" MATCHES "aarch64")
+    # Check for ACLE intrinsics
+    set(CMAKE_REQUIRED_FLAGS "${ACLEFLAG}")
+    check_c_source_compiles(
+        "#include <arm_acle.h>
+         int main(void)
+         {
+           char c[4];
+           int i;
+           i = __crc32b(i, c);
+           return i;
+         }"
+         HAVE_ACLE_INTRIN
+    )
+
+    # Check for NEON intrinsics
+    set(CMAKE_REQUIRED_FLAGS "${NEONFLAG}")
+    check_c_source_compiles(
+        "#include <arm_neon.h>
+        int main(void)
+        {
+          static float32x4_t A[2], SUMM;
+          SUMM = vmlaq_f32(SUMM, A[0], A[1]);
+          return 0;
+        }"
+        HAVE_NEON_INTRIN
+    )
+
+    add_feature_info(WITH_ACLE HAVE_ACLE_INTRIN "Build with ACLE CRC")
+    add_feature_info(WITH_NEON HAVE_NEON_INTRIN "Build with NEON intrinsics")
+endif()
+
 #
 # Enable deflate_medium at level 4-6
 #
@@ -712,32 +740,31 @@ endif()
 
 if(WITH_OPTIM)
     if("${ARCH}" MATCHES "arm")
-        if(WITH_ACLE)
+        if(WITH_ACLE AND HAVE_ACLE_INTRIN)
             set(ZLIB_ARCH_SRCS ${ZLIB_ARCH_SRCS} ${ARCHDIR}/crc32_acle.c ${ARCHDIR}/insert_string_acle.c)
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ACLEFLAG}")
             add_definitions("-DARM_ACLE_CRC_HASH")
             add_feature_info(ACLE_CRC 1 "Support CRC hash generation using the ACLE instruction set, using \"${ACLEFLAG}\"")
         endif()
-        if(WITH_NEON)
+        if(WITH_NEON AND HAVE_NEON_INTRIN)
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${NEONFLAG}")
-            if(MSVC)
-                add_definitions("-D__ARM_NEON__=1")
-            endif(MSVC)
+            add_definitions("-DHAVE_ARM_NEON -DARM_NEON_ADLER32")
             set(ZLIB_ARCH_SRCS ${ZLIB_ARCH_SRCS} ${ARCHDIR}/adler32_neon.c)
             add_feature_info(NEON_FILLWINDOW 1 "Support NEON instructions in fill_window_arm, using \"${NEONFLAG}\"")
         endif()
     elseif("${ARCH}" MATCHES "aarch64")
-        if(WITH_ACLE)
+        if(WITH_ACLE AND HAVE_ACLE_INTRIN)
             set(ZLIB_ARCH_SRCS ${ZLIB_ARCH_SRCS} ${ARCHDIR}/crc32_acle.c ${ARCHDIR}/insert_string_acle.c)
             add_definitions("-DARM_ACLE_CRC_HASH")
             add_feature_info(ACLE_CRC 1 "Support CRC hash generation using the ACLE instruction set, using \"${ACLEFLAG}\"")
         endif()
         # We need to check WITH_NEON first
-        if(WITH_NEON)
+        if(WITH_NEON AND HAVE_NEON_INTRIN)
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${NEONFLAG}")
+            add_definitions("-DHAVE_ARM_NEON -DARM_NEON_ADLER32")
             set(ZLIB_ARCH_SRCS ${ZLIB_ARCH_SRCS} ${ARCHDIR}/adler32_neon.c)
             add_feature_info(NEON_FILLWINDOW 1 "Support NEON instructions in fill_window_arm, using \"${NEONFLAG}\"")
-        elseif(WITH_ACLE)
+        elseif(WITH_ACLE AND HAVE_ACLE_INTRIN)
             set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ACLEFLAG}")
         endif()
     elseif("${ARCHDIR}" MATCHES "arch/x86")
