@@ -129,7 +129,7 @@ ZLIB_INTERNAL unsigned longest_match(deflate_state *const s, IPos cur_match) {
              *++scan == *++match && *++scan == *++match &&
              scan < strend);
 
-        Assert(scan <= s->window+(unsigned int)(s->window_size-1), "wild scan");
+        Assert(scan <= s->window+(s->window_size-1UL), "wild scan");
 
         len = MAX_MATCH - (int)(strend - scan);
         scan = strend - MAX_MATCH;
@@ -251,7 +251,7 @@ ZLIB_INTERNAL unsigned longest_match(deflate_state *const s, IPos cur_match) {
         /*
          * Here, scan <= window + strstart + 257
          */
-        Assert(scan <= s->window+(unsigned)(s->window_size-1), "wild scan");
+        Assert(scan <= s->window+(s->window_size-1UL), "wild scan");
         if (*scan == *match)
             scan++;
 
@@ -442,7 +442,7 @@ ZLIB_INTERNAL unsigned longest_match(deflate_state *const s, IPos cur_match) {
         if (scan > strend)
             scan = strend;
 
-        Assert(scan <= s->window+(unsigned)(s->window_size-1), "wild scan");
+        Assert(scan <= s->window+(s->window_size-1UL), "wild scan");
 
         len = MAX_MATCH - (int)(strend - scan);
         scan = strend - MAX_MATCH;

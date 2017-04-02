@@ -1504,7 +1504,7 @@ static block_state deflate_rle(deflate_state *s, int flush) {
                 if (s->match_length > s->lookahead)
                     s->match_length = s->lookahead;
             }
-            Assert(scan <= s->window+(unsigned int)(s->window_size-1), "wild scan");
+            Assert(scan <= s->window+(s->window_size-1UL), "wild scan");
         }
 
         /* Emit match if have run of MIN_MATCH or longer, else emit literal */
