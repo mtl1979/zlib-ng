@@ -13,13 +13,14 @@
 #ifdef _MSC_VER
 #  include <intrin.h>
 #else
-// Newer versions of GCC and clang come with cpuid.h
+/* Newer versions of GCC and clang come with cpuid.h */
 #  include <cpuid.h>
+#  include <stdint.h>
 #if (__GNUC__ > 4 || __GNUC__ == 4 && __GNUC_MINOR__ >= 4) ||  defined(__clang__)
-  static inline unsigned long long _xgetbv(unsigned int index) {
+  static inline uint64_t _xgetbv(unsigned int index) {
     unsigned int eax, edx;
     __asm__ __volatile__("xgetbv" : "=a"(eax), "=d"(edx) : "c"(index));
-    return ((unsigned long long)edx << 32) | eax;
+    return ((uint64_t)edx << 32) | eax;
   }
 #else
 #define _xgetbv() 0

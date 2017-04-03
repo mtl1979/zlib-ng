@@ -7,12 +7,12 @@ install:
   - sudo apt-get update
   - sudo apt-get install gcc-multilib
 env:
-  - BUILDDIR=. TOOL="./configure"
-  - BUILDDIR=. TOOL="./configure --asserts"
-  - BUILDDIR=. TOOL="./configure --native"
-  - BUILDDIR=. TOOL="./configure --zlib-compat"
-  - BUILDDIR=. TOOL="./configure --zlib-compat --without-optimizations --without-new-strategies"
-  - BUILDDIR=. TOOL="./configure --32"
+  - BUILDDIR=. TOOL="./configure --warn"
+  - BUILDDIR=. TOOL="./configure --warn --asserts"
+  - BUILDDIR=. TOOL="./configure --warn --native"
+  - BUILDDIR=. TOOL="./configure --warn --zlib-compat"
+  - BUILDDIR=. TOOL="./configure --warn --zlib-compat --without-optimizations --without-new-strategies"
+  - BUILDDIR=. TOOL="./configure --warn --32"
   - BUILDDIR=../build TOOL="../zlib-ng/configure"
   - BUILDDIR=. TOOL="cmake ."
   - BUILDDIR=. TOOL="cmake -DWITH_NATIVE_INSTRUCTIONS=on ."

@@ -55,7 +55,7 @@ block_state deflate_slow(deflate_state *s, int flush) {
         s->prev_length = s->match_length, s->prev_match = s->match_start;
         s->match_length = MIN_MATCH-1;
 
-        if (hash_head != NIL && s->prev_length < s->max_lazy_match && s->strstart - hash_head <= MAX_DIST(s)) {
+        if (hash_head != NIL && s->prev_length < s->max_lazy_match && s->strstart - hash_head <= (IPos)MAX_DIST(s)) {
             /* To simplify the code, we prevent matches with the string
              * of window index 0 (in particular we have to avoid a match
              * of the string with itself at the start of the input file).

@@ -18,14 +18,19 @@ static inline uint32_t load_short(const unsigned char *in, unsigned bits) {
         uint16_t a;
         uint8_t b[2];
     } chunk;
+#if BYTE_ORDER == LITTLE_ENDIAN
+    uint32_t res;
+#else
+    uint32_t c0, c1;
+#endif
     MEMCPY(&chunk, in, sizeof(uint16_t));
 
 #if BYTE_ORDER == LITTLE_ENDIAN
-    uint32_t res = chunk.a;
+    res = chunk.a;
     return res << bits;
 #else
-    uint32_t c0 = chunk.b[0];
-    uint32_t c1 = chunk.b[1];
+    c0 = chunk.b[0];
+    c1 = chunk.b[1];
     c0 <<= bits;
     c1 <<= bits + 8;
     return c0 + c1;
@@ -189,30 +194,33 @@ static inline unsigned char *set_bytes(unsigned char *out, unsigned char *from, 
         }
 
     case 1:
-        Assert(2 <= len && len <= 7, "len should be between 2 and 7");
-        unsigned char c = *from;
-        switch (len) {
-        case 7:
-            MEMSET(out, c, 7);
-            return out + 7;
-        case 6:
-            MEMSET(out, c, 6);
-            return out + 6;
-        case 5:
-            MEMSET(out, c, 5);
-            return out + 5;
-        case 4:
-            MEMSET(out, c, 4);
-            return out + 4;
-        case 3:
-            MEMSET(out, c, 3);
-            return out + 3;
-        case 2:
-            MEMSET(out, c, 2);
-            return out + 2;
-        default:
-            Assert(0, "should not happen");
-            break;
+        {
+            unsigned char c;
+            Assert(2 <= len && len <= 7, "len should be between 2 and 7");
+            c = *from;
+            switch (len) {
+            case 7:
+                MEMSET(out, c, 7);
+                return out + 7;
+            case 6:
+                MEMSET(out, c, 6);
+                return out + 6;
+            case 5:
+                MEMSET(out, c, 5);
+                return out + 5;
+            case 4:
+                MEMSET(out, c, 4);
+                return out + 4;
+            case 3:
+                MEMSET(out, c, 3);
+                return out + 3;
+            case 2:
+                MEMSET(out, c, 2);
+                return out + 2;
+            default:
+                Assert(0, "should not happen");
+                break;
+            }
         }
     }
     return out;
@@ -221,18 +229,18 @@ static inline unsigned char *set_bytes(unsigned char *out, unsigned char *from, 
 
 /* Byte by byte semantics: copy LEN bytes from OUT + DIST and write them to OUT. Return OUT + LEN. */
 static inline unsigned char *chunk_memcpy(unsigned char *out, unsigned char *from, unsigned len) {
-    unsigned sz = sizeof(uint64_t);
+    unsigned sz = sizeof(uint64_t), rem, by8;
     Assert(len >= sz, "chunk_memcpy should be called on larger chunks");
 
     /* Copy a few bytes to make sure the loop below has a multiple of SZ bytes to be copied. */
     copy_8_bytes(out, from);
 
-    unsigned rem = len % sz;
+    rem = len % sz;
     len /= sz;
     out += rem;
     from += rem;
 
-    unsigned by8 = len % sz;
+    by8 = len % sz;
     len -= by8;
     switch (by8) {
     case 7:
@@ -284,20 +292,21 @@ static inline unsigned char *chunk_memcpy(unsigned char *out, unsigned char *fro
 
 /* Memset LEN bytes in OUT with the value at OUT - 1. Return OUT + LEN. */
 static inline unsigned char *byte_memset(unsigned char *out, unsigned len) {
-    unsigned sz = sizeof(uint64_t);
+    unsigned sz = sizeof(uint64_t), rem, by8;
+    unsigned char *from, c;
     Assert(len >= sz, "byte_memset should be called on larger chunks");
 
-    unsigned char *from = out - 1;
-    unsigned char c = *from;
+    from = out - 1;
+    c = *from;
 
     /* First, deal with the case when LEN is not a multiple of SZ. */
     MEMSET(out, c, sz);
-    unsigned rem = len % sz;
+    rem = len % sz;
     len /= sz;
     out += rem;
     from += rem;
 
-    unsigned by8 = len % 8;
+    by8 = len % 8;
     len -= by8;
     switch (by8) {
     case 7:
@@ -350,13 +359,13 @@ static inline unsigned char *byte_memset(unsigned char *out, unsigned len) {
 
 /* Copy DIST bytes from OUT - DIST into OUT + DIST * k, for 0 <= k < LEN/DIST. Return OUT + LEN. */
 static inline unsigned char *chunk_memset(unsigned char *out, unsigned char *from, unsigned dist, unsigned len) {
+    unsigned sz = sizeof(uint64_t);
     if (dist >= len)
         return chunk_memcpy(out, from, len);
 
     Assert(len >= sizeof(uint64_t), "chunk_memset should be called on larger chunks");
 
     /* Double up the size of the memset pattern until reaching the largest pattern of size less than SZ. */
-    unsigned sz = sizeof(uint64_t);
     while (dist < len && dist < sz) {
         copy_8_bytes(out, from);
 

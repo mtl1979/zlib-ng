@@ -381,6 +381,9 @@ ZLIB_INTERNAL unsigned longest_match(deflate_state *const s, IPos cur_match) {
     Assert((unsigned long)s->strstart <= s->window_size-MIN_LOOKAHEAD, "need lookahead");
 
     do {
+        unsigned char *win;
+        int cont;
+
         if (cur_match >= s->strstart) {
           break;
         }
@@ -393,8 +396,9 @@ ZLIB_INTERNAL unsigned longest_match(deflate_state *const s, IPos cur_match) {
          * However the length of the match is limited to the lookahead, so
          * the output of deflate is not affected by the uninitialized values.
          */
-        unsigned char *win = s->window;
-        int cont = 1;
+
+        win = s->window;
+        cont = 1;
         do {
             match = win + cur_match;
             if (likely(*(uint16_t*)(match+best_len-1) != scan_end)) {

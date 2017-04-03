@@ -187,7 +187,7 @@ int ZLIB_INTERNAL inflate_table(codetype type, uint16_t *lens, unsigned codes,
         match = 0;
         break;
     default:
-        return -1; // Never gets here, shut up compiler ;)
+        return -1; /* Never gets here, shut up compiler ;) */
     }
 
     /* initialize state for loop */

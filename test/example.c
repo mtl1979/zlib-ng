@@ -37,7 +37,11 @@ void test_flush         (unsigned char *compr, size_t *comprLen);
 void test_sync          (unsigned char *compr, size_t comprLen, unsigned char *uncompr, size_t uncomprLen);
 void test_dict_deflate  (unsigned char *compr, size_t comprLen);
 void test_dict_inflate  (unsigned char *compr, size_t comprLen, unsigned char *uncompr, size_t uncomprLen);
+#ifdef WITH_GZFILEOP
 int  main               (int argc, char *argv[]);
+#else
+int  main               (void);
+#endif
 
 
 static alloc_func zalloc = NULL;
@@ -317,7 +321,7 @@ void test_large_inflate(unsigned char *compr, size_t comprLen, unsigned char *un
     CHECK_ERR(err, "inflateEnd");
 
     if (d_stream.total_out != 2*uncomprLen + comprLen/2) {
-        fprintf(stderr, "bad large inflate: %zu\n", d_stream.total_out);
+        fprintf(stderr, "bad large inflate: %lu\n", (unsigned long)d_stream.total_out);
         exit(1);
     } else {
         printf("large_inflate(): OK\n");
@@ -489,7 +493,11 @@ void test_dict_inflate(unsigned char *compr, size_t comprLen, unsigned char *unc
  * Usage:  example [output.gz  [input.gz]]
  */
 
+#ifdef WITH_GZFILEOP
 int main(int argc, char *argv[])
+#else
+int main(void)
+#endif
 {
     unsigned char *compr, *uncompr;
     size_t comprLen = 10000*sizeof(int); /* don't overflow on MSDOS */
