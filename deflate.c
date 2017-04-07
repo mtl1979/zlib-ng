@@ -631,7 +631,12 @@ unsigned long ZEXPORT deflateBound(z_stream *strm, unsigned long sourceLen) {
  * pending_buf.
  */
 static void putShortMSB(deflate_state *s, uint16_t b) {
+#if BYTE_ORDER == BIG_ENDIAN
+    put_byte(s, (b) >> 8);
+    put_byte(s, (b) & 0xff);
+#else
     put_short(s, ZSHORT_TO_BIG(b));
+#endif
 }
 
 /* =========================================================================
@@ -641,7 +646,12 @@ static void putShortMSB(deflate_state *s, uint16_t b) {
  */
 
 static void putIntMSB(deflate_state *s, uint32_t b) {
+#if BYTE_ORDER == BIG_ENDIAN
+    putShortMSB(s, b >> 16);
+    putShortMSB(s, b & 0xffff);
+#else
     put_int(s, ZINT_TO_BIG(b));
+#endif
 }
 
 /* =========================================================================
