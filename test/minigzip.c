@@ -26,6 +26,10 @@
 #  include <sys/stat.h>
 #endif
 
+#ifndef UNALIGNED_OK
+#  include <malloc.h>
+#endif
+
 #if defined(WIN32) || defined(__CYGWIN__)
 #  include <fcntl.h>
 #  include <io.h>
@@ -66,7 +70,11 @@ void myfree (void *, void *);
 void *myalloc(void *q, unsigned n, unsigned m)
 {
     (void)q;
+#ifndef UNALIGNED_OK
+    return memalign(16, n * m);
+#else
     return calloc(n, m);
+#endif
 }
 
 void myfree(void *q, void *p)
