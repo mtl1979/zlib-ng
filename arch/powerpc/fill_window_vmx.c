@@ -58,6 +58,8 @@ ZLIB_INTERNAL void fill_window_vmx(deflate_state *s) {
             n = s->hash_size;
             p = &s->head[n];
             p -= 8;
+
+            Assert((uintptr_t)p & 15 == 0, "head must be 16-byte aligned.");
             do {
                 vector unsigned short value, result;
 
@@ -72,6 +74,7 @@ ZLIB_INTERNAL void fill_window_vmx(deflate_state *s) {
             n = wsize;
             p = &s->prev[n];
             p -= 8;
+            Assert((uintptr_t)p & 15 == 0, "prev must be 16-byte aligned.");
             do {
                 vector unsigned short value, result;
 
