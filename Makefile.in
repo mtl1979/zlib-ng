@@ -109,7 +109,7 @@ infcover.o: $(SRCDIR)/test/infcover.c $(SRCDIR)/zlib.h zconf.h
 	$(CC) $(CFLAGS) $(INCLUDES) -c -o $@ $(SRCDIR)/test/infcover.c
 
 infcover$(EXE): infcover.o $(STATICLIB)
-	$(CC) $(LDFLAGS) -o $@ infcover.o $(STATICLIB)
+	$(CC) $(LDFLAGS) -o $@ infcover.o $(STATICLIB) $(LDSHAREDLIBC)
 ifneq ($(STRIP),)
 	$(STRIP) $@
 endif

@@ -16,6 +16,7 @@
 /example
 /example64
 /examplesh
+/infcover
 /libz.so*
 /minigzip
 /minigzip64
