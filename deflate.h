@@ -416,6 +416,9 @@ void ZLIB_INTERNAL bi_windup(deflate_state *s);
       if (s->head[h] != i) {\
           s->prev[i & s->w_mask] = s->head[h];\
           s->head[h] = i;\
+          if (i == lp) {\
+              ret = s->prev[i & s->w_mask];\
+          }\
       }\
   } while (0)
 

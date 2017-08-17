@@ -39,13 +39,14 @@ extern Pos insert_string_acle(deflate_state *const s, const Pos str, unsigned in
 #endif
 
 static inline Pos insert_string_c(deflate_state *const s, const Pos str, unsigned int count) {
-    Pos p, lp;
+    Pos p, lp, ret;
     unsigned int h = s->ins_h;
 
     if (unlikely(count == 0)) {
         return s->prev[str & s->w_mask];
     }
 
+    ret = 0;
     lp = str + count - 1; /* last position */
 
     for (p = str; p <= lp; p++) {
@@ -53,7 +54,7 @@ static inline Pos insert_string_c(deflate_state *const s, const Pos str, unsigne
         UPDATE_PREV(s, h, p);
     }
     s->ins_h = h;
-    return s->prev[lp & s->w_mask];
+    return ret;
 }
 
 static inline Pos insert_string(deflate_state *const s, const Pos str, unsigned int count) {

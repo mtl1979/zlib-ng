@@ -20,12 +20,13 @@
  */
 #ifdef ARM_ACLE_CRC_HASH
 Pos insert_string_acle(deflate_state *const s, const Pos str, unsigned int count) {
-    Pos p, lp;
+    Pos p, lp, ret;
 
     if (unlikely(count == 0)) {
         return s->prev[str & s->w_mask];
     }
 
+    ret = 0;
     lp = str + count - 1; /* last position */
 
     for (p = str; p <= lp; p++) {
@@ -42,6 +43,6 @@ Pos insert_string_acle(deflate_state *const s, const Pos str, unsigned int count
 
         UPDATE_PREV(s, hm, p);
     }
-    return s->prev[lp & s->w_mask];
+    return ret;
 }
 #endif
