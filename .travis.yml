@@ -7,11 +7,14 @@ install:
   - sudo apt-get update
   - sudo apt-get install gcc-multilib
 env:
-  - BUILDDIR=. TOOL="./configure --warn"
-  - BUILDDIR=. TOOL="./configure --warn --asserts"
-  - BUILDDIR=. TOOL="./configure --warn --native"
-  - BUILDDIR=. TOOL="./configure --warn --zlib-compat"
-  - BUILDDIR=. TOOL="./configure --warn --zlib-compat --without-optimizations --without-new-strategies"
+  global:
+  - CODECOV_TOKEN=3dec9d4f-9aca-4e19-874f-3d81cdb3f42d
+  matrix:
+  - BUILDDIR=. TOOL="./configure --cover --warn"
+  - BUILDDIR=. TOOL="./configure --cover --warn --asserts"
+  - BUILDDIR=. TOOL="./configure --cover --warn --native"
+  - BUILDDIR=. TOOL="./configure --cover --warn --zlib-compat"
+  - BUILDDIR=. TOOL="./configure --cover --warn --zlib-compat --without-optimizations --without-new-strategies"
   - BUILDDIR=. TOOL="./configure --warn --32"
   - BUILDDIR=../build TOOL="../zlib-ng/configure"
   - BUILDDIR=. TOOL="cmake ."
@@ -22,3 +25,5 @@ env:
   - BUILDDIR=../build TOOL="cmake ../zlib-ng"
 script: mkdir -p $BUILDDIR && cd $BUILDDIR &&
         $TOOL && make && make test
+after_success:
+- bash <(curl -s https://codecov.io/bash)
