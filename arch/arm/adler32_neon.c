@@ -79,7 +79,7 @@ static void NEON_handle_tail(uint32_t *pair, const unsigned char *buf, size_t le
     }
 }
 
-uint32_t adler32_neon(uint32_t adler, const unsigned char *buf, size_t len) {
+uint32_t adler32_neon(uint32_t adler, const unsigned char *buf, uint64_t len) {
     if (!buf)
         return 1L;
 

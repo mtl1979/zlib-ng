@@ -8,7 +8,7 @@
 #include "zutil.h"
 #include "functable.h"
 
-uint32_t adler32_c(uint32_t adler, const unsigned char *buf, size_t len);
+uint32_t adler32_c(uint32_t adler, const unsigned char *buf, uint64_t len);
 static uint32_t adler32_combine_(uint32_t adler1, uint32_t adler2, z_off64_t len2);
 
 #define BASE 65521U     /* largest prime smaller than 65536 */
@@ -62,7 +62,7 @@ static uint32_t adler32_combine_(uint32_t adler1, uint32_t adler2, z_off64_t len
 #endif
 
 /* ========================================================================= */
-uint32_t adler32_c(uint32_t adler, const unsigned char *buf, size_t len) {
+uint32_t adler32_c(uint32_t adler, const unsigned char *buf, uint64_t len) {
     uint32_t sum2;
     unsigned n;
 

@@ -33,11 +33,11 @@ extern void fill_window_vmx(deflate_state *s);
 #endif
 
 /* adler32 */
-extern uint32_t adler32_c(uint32_t adler, const unsigned char *buf, size_t len);
+extern uint32_t adler32_c(uint32_t adler, const unsigned char *buf, uint64_t len);
 #if ((defined(__ARM_NEON__) || defined(__ARM_NEON)) && defined(ARM_NEON_ADLER32))
-extern uint32_t adler32_neon(uint32_t adler, const unsigned char *buf, size_t len);
+extern uint32_t adler32_neon(uint32_t adler, const unsigned char *buf, uint64_t len);
 #elif defined(HAVE_PPC_ALTIVEC)
-extern uint32_t adler32_vmx(uint32_t adler, const unsigned char *buf, size_t len);
+extern uint32_t adler32_vmx(uint32_t adler, const unsigned char *buf, uint64_t len);
 #endif
 
 ZLIB_INTERNAL uint32_t crc32_generic(uint32_t, const unsigned char *, uint64_t);
@@ -55,7 +55,7 @@ extern uint32_t crc32_big(uint32_t, const unsigned char *, uint64_t);
 /* stub definitions */
 ZLIB_INTERNAL Pos insert_string_stub(deflate_state *const s, const Pos str, unsigned int count);
 ZLIB_INTERNAL void fill_window_stub(deflate_state *s);
-ZLIB_INTERNAL uint32_t adler32_stub(uint32_t adler, const unsigned char *buf, size_t len);
+ZLIB_INTERNAL uint32_t adler32_stub(uint32_t adler, const unsigned char *buf, uint64_t len);
 ZLIB_INTERNAL uint32_t crc32_stub(uint32_t crc, const unsigned char *buf, uint64_t len);
 
 /* functable init */
@@ -96,7 +96,7 @@ ZLIB_INTERNAL void fill_window_stub(deflate_state *s) {
     functable.fill_window(s);
 }
 
-ZLIB_INTERNAL uint32_t adler32_stub(uint32_t adler, const unsigned char *buf, size_t len) {
+ZLIB_INTERNAL uint32_t adler32_stub(uint32_t adler, const unsigned char *buf, uint64_t len) {
     // Initialize default
     functable.adler32=&adler32_c;
 

@@ -63,7 +63,7 @@ static void vmx_accum32(uint32_t *s, const unsigned char *buf, size_t len)
   s[1] = vec_extract(s2acc, 0) + vec_extract(s2acc, 1) + vec_extract(s2acc, 2) + vec_extract(s2acc, 3); /* Horizontal add */
 }
 
-uint32_t adler32_vmx(uint32_t adler, const unsigned char *buf, size_t len)
+uint32_t adler32_vmx(uint32_t adler, const unsigned char *buf, uint64_t len)
 {
   /* The largest prime smaller than 65536. */
   const uint32_t M_BASE = 65521;

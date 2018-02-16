@@ -24,6 +24,6 @@
 // http://stackoverflow.com/questions/26410466/gcc-linaro-compiler-throws-error-unknown-type-name-size-t
 #include <stdint.h>
 #include <stddef.h>
-uint32_t adler32_neon(uint32_t adler, const unsigned char *buf, size_t len);
+uint32_t adler32_neon(uint32_t adler, const unsigned char *buf, uint64_t len);
 #endif
 #endif
