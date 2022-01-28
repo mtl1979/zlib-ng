@@ -36,5 +36,5 @@ target_link_libraries(gtest_zlib zlibstatic gtest_main)
 
 if(ZLIB_ENABLE_TESTS)
     add_test(NAME gtest_zlib
-        COMMAND ${CMAKE_CROSSCOMPILING_EMULATOR} $<TARGET_FILE:gtest_zlib>)
+        COMMAND ${CMAKE_CROSSCOMPILING_EMULATOR} $<TARGET_FILE:gtest_zlib> --gtest_color=no)
 endif()
