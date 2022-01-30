@@ -9,12 +9,12 @@ set(CMAKE_CXX_STANDARD 11)
 
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+set(gtest_disable_pthreads ON CACHE BOOL "" FORCE)
 
 # Fetch Google test source code from official repository
 FetchContent_Declare(googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
     GIT_TAG main)
-set(gtest_disable_pthreads ON)
 FetchContent_GetProperties(googletest)
 if(NOT googletest_POPULATED)
   FetchContent_Populate(googletest)
@@ -32,7 +32,7 @@ target_include_directories(gtest_zlib PRIVATE
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_BINARY_DIR})
 
-target_link_libraries(gtest_zlib zlibstatic gtest_main)
+target_link_libraries(gtest_zlib zlibstatic gtest)
 
 if(ZLIB_ENABLE_TESTS)
     add_test(NAME gtest_zlib
