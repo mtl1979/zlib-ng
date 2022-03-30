@@ -67,9 +67,9 @@ done
 # Choose reference repo and commit
 if test "$suffix" = ""
 then
-  # Reference is zlib 1.2.11
+  # Reference is zlib 1.2.12
   ABI_GIT_REPO=https://github.com/madler/zlib.git
-  ABI_GIT_COMMIT=v1.2.11
+  ABI_GIT_COMMIT=ec3df00224d4b396e2ac6586ab5d25f673caa4c2
 else
   # Reference should be the tag for zlib-ng 2.0
   # but until that bright, shining day, use some
@@ -91,15 +91,6 @@ then
   *-m32*) M32="-m32";;
   *) M32="";;
   esac
-fi
-
-# Canonicalize CHOST to work around bug in original zlib's configure
-export CHOST=$(sh $TESTDIR/../tools/config.sub $CHOST)
-
-if test "$CHOST" = ""
-then
-  echo "abicheck: SKIP, as we don't know CHOST"
-  exit 0
 fi
 
 ABIFILE="test/abi/zlib$suffix-$ABI_GIT_COMMIT-$CHOST$M32.abi"
