@@ -69,7 +69,7 @@ if test "$suffix" = ""
 then
   # Reference is zlib 1.2.12 develop due to errors compiling shared library in the 1.2.12 tag.
   ABI_GIT_REPO=https://github.com/madler/zlib.git
-  ABI_GIT_COMMIT=ec3df00224d4b396e2ac6586ab5d25f673caa4c2
+  ABI_GIT_COMMIT=013c0ca0f4a0601c21705405d6493129444ce64c
 else
   # Reference is most recent zlib-ng develop with zlib 1.2.12 compatible api.
   ABI_GIT_REPO=https://github.com/zlib-ng/zlib-ng.git
@@ -89,13 +89,6 @@ then
   *) M32="";;
   esac
 fi
-
-# Canonicalize CHOST to work around bug in original zlib's configure
-# (Don't export it if it wasn't already exported, else may cause
-# default compiler detection failure and shared library link error
-# when building both zlib and zlib-ng.
-# See https://github.com/zlib-ng/zlib-ng/issues/1219)
-CHOST=$(sh $TESTDIR/../tools/config.sub $CHOST)
 
 if test "$CHOST" = ""
 then
