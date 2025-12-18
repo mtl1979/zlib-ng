@@ -134,6 +134,10 @@ typedef struct deflate_allocs_s {
     Pos             *head;
 } deflate_allocs;
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(error : 4820)
+#endif
 struct ALIGNED_(64) internal_state {
                 /* Cacheline 0 */
     PREFIX3(stream)      *strm;            /* pointer back to this zlib stream */
@@ -153,6 +157,10 @@ struct ALIGNED_(64) internal_state {
      * This is set to 1 if there is an active block, or 0 if the block was just closed.
      */
 
+    // Align to cacheline size
+#if defined(_M_IX86) || defined(_M_ARM)
+    int32_t padding0[4];
+#endif
                 /* Cacheline 1 */
 
     unsigned int  lookahead;    /* number of valid bytes ahead in window */
@@ -198,6 +206,10 @@ struct ALIGNED_(64) internal_state {
     int          match_available;    /* set if previous match exists */
     uint32_t     prev_match;         /* previous match (used by deflate_slow) */
 
+    // Align to cacheline size
+#if defined(_M_IX86) || defined(_M_ARM)
+    int32_t padding1[3];
+#endif
                 /* Cacheline 2 */
 
     unsigned int match_start;        /* start of matching string */
@@ -237,13 +249,13 @@ struct ALIGNED_(64) internal_state {
     int heap_len;               /* number of elements in the heap */
     int heap_max;               /* element of largest frequency */
 
-    int32_t padding1[1];
-
-                /* Cacheline 3 */
+    int32_t padding2[1];
 
 #if defined(_M_IX86) || defined(_M_ARM)
-    int32_t padding2[1];
+    int32_t padding3[4];
 #endif
+
+                /* Cacheline 3 */
 
     struct crc32_fold_s ALIGNED_(16) crc_fold;
 
@@ -268,6 +280,8 @@ struct ALIGNED_(64) internal_state {
     unsigned char depth[2*L_CODES+1];
     /* Depth of each subtree used as tie breaker for trees of equal frequency
      */
+
+    unsigned char padding4[4 - ((2*L_CODES+1) % 4)];
 
     unsigned int  lit_bufsize;
     /* Size of match buffer for literals/lengths.  There are 4 reasons for
@@ -314,15 +328,20 @@ struct ALIGNED_(64) internal_state {
 #ifdef ZLIB_DEBUG
     unsigned long compressed_len; /* total bit length of compressed file mod 2^32 */
     unsigned long bits_sent;      /* bit length of compressed data sent mod 2^32 */
+#else
+    unsigned long unused[2];
 #endif
 
     /* Reserved for future use and alignment purposes */
-    int32_t reserved[19];
+    int32_t reserved[10];
 
 #if defined(_M_IX86) || defined(_M_ARM)
-    int32_t padding3[4];
+    int32_t padding5[8];
 #endif
 };
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 typedef enum {
     need_more,      /* block not completed, need more input or more output */
