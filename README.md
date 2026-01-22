@@ -4,6 +4,7 @@
 | CodeFactor     | [![CodeFactor](https://www.codefactor.io/repository/github/zlib-ng/zlib-ng/badge/stable)](https://www.codefactor.io/repository/github/zlib-ng/zlib-ng/overview/stable) | [![CodeFactor](https://www.codefactor.io/repository/github/zlib-ng/zlib-ng/badge/develop)](https://www.codefactor.io/repository/github/zlib-ng/zlib-ng/overview/develop) |
 | OSS-Fuzz       | [![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/zlib-ng.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=1&q=proj:zlib-ng) | [![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/zlib-ng.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=1&q=proj:zlib-ng) |
 | Codecov        | [![codecov](https://codecov.io/github/zlib-ng/zlib-ng/branch/stable/graph/badge.svg?token=uKsgK9LIuC)](https://codecov.io/github/zlib-ng/zlib-ng/tree/stable) | [![codecov](https://codecov.io/github/zlib-ng/zlib-ng/branch/develop/graph/badge.svg?token=uKsgK9LIuC)](https://codecov.io/github/zlib-ng/zlib-ng/tree/develop) |
+| Coveralls      | [![Coveralls](https://coveralls.io/repos/github/zlib-ng/zlib-ng/badge.svg?branch=stable)](https://coveralls.io/github/zlib-ng/zlib-ng?branch=stable) | [![Coveralls](https://coveralls.io/repos/github/zlib-ng/zlib-ng/badge.svg?branch=develop)](https://coveralls.io/github/zlib-ng/zlib-ng?branch=develop) |
 
 ## zlib-ng
 *zlib data compression library for the next generation systems*
