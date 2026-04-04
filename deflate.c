@@ -54,6 +54,8 @@
 #include "insert_string_p.h"
 #include "arch_functions.h"
 
+#include <limits.h>
+
 /* Avoid conflicts with zlib.h macros */
 #ifdef ZLIB_COMPAT
 # undef deflateInit
@@ -690,9 +692,9 @@ int32_t Z_EXPORT PREFIX(deflateTune)(PREFIX3(stream) *strm, int32_t good_length,
  * upper bound of about 14% expansion does not seem onerous for output buffer
  * allocation.
  */
-unsigned long Z_EXPORT PREFIX(deflateBound)(PREFIX3(stream) *strm, unsigned long sourceLen) {
+z_size_t Z_EXPORT PREFIX(deflateBound_z)(PREFIX3(stream) *strm, z_size_t sourceLen) {
     deflate_state *s;
-    unsigned long complen, wraplen;
+    z_size_t complen, wraplen;
 
     /* conservative upper bound for compressed data */
     complen = sourceLen + ((sourceLen + 7) >> 3) + ((sourceLen + 63) >> 6) + 5;
@@ -765,6 +767,11 @@ unsigned long Z_EXPORT PREFIX(deflateBound)(PREFIX3(stream) *strm, unsigned long
 #else
     return sourceLen + (sourceLen >> 4) + 7 + wraplen;
 #endif
+}
+
+unsigned long Z_EXPORT PREFIX(deflateBound)(PREFIX3(stream) *strm, unsigned long sourceLen) {
+    unsigned long bound = (unsigned long)PREFIX(deflateBound_z)(strm, sourceLen);
+    return bound < sourceLen ? ULONG_MAX : bound;
 }
 
 /* =========================================================================
