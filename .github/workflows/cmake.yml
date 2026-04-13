@@ -587,7 +587,7 @@ jobs:
             shell: msys2 {0}
             compiler: i686-w64-mingw32-gcc
             cxx-compiler: i686-w64-mingw32-g++
-            # Coverage disabled for MinGW32
+            coverage: win32_gcc
 
           - name: Windows GCC MinGW32 Compat
             os: windows-latest
@@ -595,7 +595,7 @@ jobs:
             compiler: i686-w64-mingw32-gcc
             cxx-compiler: i686-w64-mingw32-g++
             cmake-args: -DZLIB_COMPAT=ON
-            # Coverage disabled for MinGW32
+            coverage: win32_gcc_compat
 
           - name: macOS Clang (Intel, Target 10.10)
             os: macos-15-intel
@@ -908,6 +908,7 @@ jobs:
 
     - name: Generate coverage report
       if: matrix.coverage
+      shell: bash
       run: |
         python3 -u -m venv ./venv
         source ./venv/${{ runner.os == 'Windows' && 'Scripts' || 'bin' }}/activate
@@ -925,7 +926,7 @@ jobs:
       env:
         COVERALLS_REPO_TOKEN: "${{ secrets.COVERALLS_REPO_TOKEN }}"
       if: |
-        matrix.codecov
+        matrix.coverage
         && !contains(matrix.os, 'z15')
         && (env.COVERALLS_REPO_TOKEN != '' || github.repository == 'zlib-ng/zlib-ng')
       with:
