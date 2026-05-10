@@ -17,6 +17,7 @@
 #define HAVE_CHUNKMEMSET_2
 #define HAVE_CHUNKMEMSET_4
 #define HAVE_CHUNKMEMSET_8
+#define HAVE_CHUNKMEMSET_16
 
 #define CHUNK_MEMSET_RVV_IMPL(from, chunk, elen)                        \
 do {                                                                    \
@@ -46,6 +47,11 @@ static inline void chunkmemset_4(uint8_t *from, chunk_t *chunk) {
 
 static inline void chunkmemset_8(uint8_t *from, chunk_t *chunk) {
     CHUNK_MEMSET_RVV_IMPL(from, chunk, 64);
+}
+
+static inline void chunkmemset_16(uint8_t *from, chunk_t *chunk) {
+    memcpy(chunk->data, from, 16);
+    memcpy((uint8_t *)chunk->data + 16, from, 16);
 }
 
 static inline void loadchunk(uint8_t const *s, chunk_t *chunk) {
