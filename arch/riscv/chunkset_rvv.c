@@ -49,9 +49,11 @@ static inline void chunkmemset_8(uint8_t *from, chunk_t *chunk) {
     CHUNK_MEMSET_RVV_IMPL(from, chunk, 64);
 }
 
+typedef __uint128_t uint128x2_t __attribute__ ((vector_size (32)));
 static inline void chunkmemset_16(uint8_t *from, chunk_t *chunk) {
-    memcpy(chunk->data, from, 16);
-    memcpy((uint8_t *)chunk->data + 16, from, 16);
+    uint128x2_t *_chunk = (uint128x2_t *)chunk;
+    (*_chunk)[0] = *((__uint128_t *)from);
+    (*_chunk)[1] = *((__uint128_t *)from);
 }
 
 static inline void loadchunk(uint8_t const *s, chunk_t *chunk) {
