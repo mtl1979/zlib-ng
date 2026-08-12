@@ -57,6 +57,10 @@ extern "C" {
 #define ZLIBNG_VER_STATUSH 0x0      /* Hex values: 0=devel, 1-9=beta, A-E=Release Candidate, F=Release */
 #define ZLIBNG_VER_MODIFIED 0       /* non-zero if modified externally from zlib-ng */
 
+#ifndef ZLIBNG_COMPAT_VER
+#  define ZLIBNG_COMPAT_VER ZLIBNG_VERNUM
+#endif
+
 /*
     The 'zlib' compression library provides in-memory compression and
   decompression functions, including integrity checks of the uncompressed data.
@@ -751,7 +755,12 @@ int32_t zng_deflateTune(zng_stream *strm, int32_t good_length, int32_t max_lazy,
  */
 
 Z_EXTERN Z_EXPORT
+#if ZLIBNG_COMPAT_VER < 0x02040000L
 unsigned long zng_deflateBound(zng_stream *strm, unsigned long sourceLen);
+#else
+size_t zng_deflateBound(zng_stream *strm, size_t sourceLen);
+#endif
+
 Z_EXTERN Z_EXPORT
 size_t zng_deflateBound_z(zng_stream *strm, size_t sourceLen);
 /*
@@ -1738,7 +1747,11 @@ void zng_gzclearerr(gzFile file);
 */
 
 Z_EXTERN Z_EXPORT
+#if ZLIBNG_COMPAT_VER < 0x02040000L
+uint32_t zng_adler32(uint32_t adler, const uint8_t *buf, uint32_t len);
+#else
 uint32_t zng_adler32(uint32_t adler, const uint8_t *buf, size_t len);
+#endif
 /*
      Update a running Adler-32 checksum with the bytes buf[0..len-1] and
    return the updated checksum. An Adler-32 value is in the range of a 32-bit
@@ -1759,6 +1772,13 @@ uint32_t zng_adler32(uint32_t adler, const uint8_t *buf, size_t len);
 */
 
 Z_EXTERN Z_EXPORT
+uint32_t zng_adler32_z(uint32_t adler, const uint8_t *buf, size_t len);
+/*
+     Same as adler32(), but with a size_t length.
+*/
+
+
+Z_EXTERN Z_EXPORT
 uint32_t zng_adler32_combine(uint32_t adler1, uint32_t adler2, z_off64_t len2);
 /*
      Combine two Adler-32 checksums into one.  For two sequences of bytes, seq1
@@ -1770,7 +1790,11 @@ uint32_t zng_adler32_combine(uint32_t adler1, uint32_t adler2, z_off64_t len2);
 */
 
 Z_EXTERN Z_EXPORT
+#if ZLIBNG_COMPAT_VER < 0x02040000L
+uint32_t zng_crc32(uint32_t crc, const uint8_t *buf, uint32_t len);
+#else
 uint32_t zng_crc32(uint32_t crc, const uint8_t *buf, size_t len);
+#endif
 /*
      Update a running CRC-32 with the bytes buf[0..len-1] and return the
    updated CRC-32. A CRC-32 value is in the range of a 32-bit unsigned integer.
@@ -1787,6 +1811,13 @@ uint32_t zng_crc32(uint32_t crc, const uint8_t *buf, size_t len);
      }
      if (crc != original_crc) error();
 */
+
+Z_EXTERN Z_EXPORT
+uint32_t zng_crc32_z(uint32_t crc, const uint8_t *buf, size_t len);
+/*
+     Same as crc32(), but with a size_t length.
+*/
+
 
 Z_EXTERN Z_EXPORT
 uint32_t zng_crc32_combine(uint32_t crc1, uint32_t crc2, z_off64_t len2);
@@ -1900,10 +1931,6 @@ Z_EXTERN Z_EXPORT int32_t          zng_deflateResetKeep (zng_stream *);
 #  endif
 Z_EXTERN Z_EXPORTVA int32_t zng_gzvprintf(gzFile file, const char *format, va_list va);
 #endif
-
-/* Aliases for backwards compatibility */
-#define zng_crc32_z @ZLIB_SYMBOL_PREFIX@zng_crc32
-#define zng_adler32_z @ZLIB_SYMBOL_PREFIX@zng_adler32
 
 #ifdef __cplusplus
 }

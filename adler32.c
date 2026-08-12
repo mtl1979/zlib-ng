@@ -18,9 +18,7 @@ unsigned long Z_EXPORT adler32(unsigned long adler, const unsigned char *buf, un
         return ADLER32_INITIAL_VALUE;
     return (unsigned long)FUNCTABLE_CALL(adler32)((uint32_t)adler, buf, len);
 }
-#endif
-
-#ifndef ZLIB_COMPAT
+#else
 #  if defined(HAVE_SYMVER)
 // Preferred function
 ZSYMVER_DEF(zng_adler32_sizet, zng_adler32, "ZLIB_NG_2.4.0")
@@ -36,7 +34,12 @@ uint32_t Z_EXPORT zng_adler32_uint32(uint32_t adler, const unsigned char *buf, u
         return ADLER32_INITIAL_VALUE;
     return FUNCTABLE_CALL(adler32)(adler, buf, len);
 }
-
+#  elif ZLIBNG_COMPAT_VER < 0x02040000L
+uint32_t Z_EXPORT zng_adler32(uint32_t adler, const unsigned char *buf, uint32_t len) {
+   if (buf == NULL)
+      return ADLER32_INITIAL_VALUE;
+   return FUNCTABLE_CALL(adler32)(adler, buf, len);
+}
 #  else
 //Fallback to preferred function
 uint32_t Z_EXPORT zng_adler32(uint32_t adler, const unsigned char *buf, size_t len) {
@@ -46,9 +49,6 @@ uint32_t Z_EXPORT zng_adler32(uint32_t adler, const unsigned char *buf, size_t l
 }
 #  endif
 
-#    ifdef zng_adler32_z
-#      undef zng_adler32_z
-#    endif
 // Deprecated function
 uint32_t Z_EXPORT zng_adler32_z(uint32_t adler, const unsigned char *buf, size_t len) {
     if (buf == NULL)

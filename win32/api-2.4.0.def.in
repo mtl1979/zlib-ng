@@ -1,0 +1,6 @@
+; zlib-ng data compression library
+EXPORTS
+; basic functions
+    @ZLIB_SYMBOL_PREFIX@zng_adler32 = zlib-ng2.@ZLIB_SYMBOL_PREFIX@zng_adler32_z
+    @ZLIB_SYMBOL_PREFIX@zng_crc32 = zlib-ng2.@ZLIB_SYMBOL_PREFIX@zng_crc32_z
+    @ZLIB_SYMBOL_PREFIX@zng_deflateBound = zlib-ng2.@ZLIB_SYMBOL_PREFIX@zng_deflateBound_z

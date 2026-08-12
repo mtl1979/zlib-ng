@@ -575,7 +575,7 @@ static void test_deflate_bound(void) {
     CHECK_ERR(err, "deflateInit");
 
     /* calculate actual output length and update structure */
-    estimateLen = PREFIX(deflateBound)(&c_stream, len);
+    estimateLen = (uint32_t)PREFIX(deflateBound_z)(&c_stream, len);
     outBuf = malloc(estimateLen);
 
     if (outBuf != NULL) {

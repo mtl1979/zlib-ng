@@ -65,7 +65,7 @@ static int compress_chunk(PREFIX3(stream) *strm, int level, int size, int last) 
         goto done;
     }
 
-    compsize = PREFIX(deflateBound)(strm, size);
+    compsize = (uint32_t)PREFIX(deflateBound)(strm, size);
     buf = malloc(size + compsize);
     if (buf == NULL) {
         fprintf(stderr, "Out of memory\n");

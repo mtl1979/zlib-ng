@@ -38,9 +38,7 @@ Z_EXPORT unsigned long crc32(unsigned long crc, const unsigned char *buf, unsign
         return CRC32_INITIAL_VALUE;
     return (unsigned long)FUNCTABLE_CALL(crc32)((uint32_t)crc, buf, len);
 }
-#endif
-
-#ifndef ZLIB_COMPAT
+#else
 #  if defined(HAVE_SYMVER)
 // Preferred function
 ZSYMVER_DEF(zng_crc32_sizet, zng_crc32, "ZLIB_NG_2.4.0")
@@ -56,7 +54,12 @@ Z_EXPORT uint32_t zng_crc32_uint32(uint32_t crc, const unsigned char *buf, uint3
         return CRC32_INITIAL_VALUE;
     return FUNCTABLE_CALL(crc32)(crc, buf, len);
 }
-
+#  elif ZLIBNG_COMPAT_VER < 0x02040000L
+Z_EXPORT uint32_t zng_crc32(uint32_t crc, const unsigned char *buf, uint32_t len) {
+   if (buf == NULL)
+      return CRC32_INITIAL_VALUE;
+   return FUNCTABLE_CALL(crc32)(crc, buf, len);
+}
 #  else
 // Fallback to preferred function
 Z_EXPORT uint32_t zng_crc32(uint32_t crc, const unsigned char *buf, size_t len) {
@@ -66,9 +69,6 @@ Z_EXPORT uint32_t zng_crc32(uint32_t crc, const unsigned char *buf, size_t len) 
 }
 #  endif
 
-#    ifdef zng_crc32_z
-#      undef zng_crc32_z
-#    endif
 // Deprecated function
 Z_EXPORT uint32_t zng_crc32_z(uint32_t crc, const unsigned char *buf, size_t len) {
     if (buf == NULL)
