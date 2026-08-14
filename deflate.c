@@ -769,10 +769,23 @@ z_size_t Z_EXPORT PREFIX(deflateBound_z)(PREFIX3(stream) *strm, z_size_t sourceL
 #endif
 }
 
+#if !defined(ZLIB_COMPAT) && defined(HAVE_SYMVER)
+ZSYMVER_DEF(zng_deflateBound_sizet, zng_deflateBound, "ZLIB_NG_2.4.0")
+size_t Z_EXPORT zng_deflateBound_sizet(PREFIX3(stream)* strm, size_t sourceLen) {
+   return PREFIX(deflateBound_z)(strm, sourceLen);
+}
+
+ZSYMVER(zng_deflateBound_uint32, zng_deflateBound, "ZLIB_NG_2.0.0")
+unsigned long Z_EXPORT zng_deflateBound_uint32(PREFIX3(stream) *strm, unsigned long sourceLen) {
+   unsigned long bound = (unsigned long)PREFIX(deflateBound_z)(strm, sourceLen);
+   return bound < sourceLen ? ULONG_MAX : bound;
+}
+#else
 unsigned long Z_EXPORT PREFIX(deflateBound)(PREFIX3(stream) *strm, unsigned long sourceLen) {
     unsigned long bound = (unsigned long)PREFIX(deflateBound_z)(strm, sourceLen);
     return bound < sourceLen ? ULONG_MAX : bound;
 }
+#endif
 
 /* =========================================================================
  * Flush as much pending output as possible. See flush_pending_inline()
