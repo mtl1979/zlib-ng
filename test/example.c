@@ -951,8 +951,13 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "warning: different zlib version linked: %s\n", zVersion());
     }
 
-    printf("zlib-ng version %s = 0x%08lx, compile flags = 0x%lx\n",
-            ZLIBNG_VERSION, ZLIBNG_VERNUM, PREFIX(zlibCompileFlags)());
+#ifdef ZLIB_COMPAT
+    printf("zlib-ng version %s = 0x%08lx (API version = 0x%04x), compile flags = 0x%lx\n",
+        ZLIBNG_VERSION, ZLIBNG_VERNUM, ZLIB_VERNUM, PREFIX(zlibCompileFlags)());
+#else
+    printf("zlib-ng version %s = 0x%08lx (API version = 0x%08lx), compile flags = 0x%lx\n",
+        ZLIBNG_VERSION, ZLIBNG_VERNUM, ZLIBNG_COMPAT_VER, PREFIX(zlibCompileFlags)());
+#endif
 
     compr    = (unsigned char*)calloc((unsigned int)comprLen, 1);
     uncompr  = (unsigned char*)calloc((unsigned int)uncomprLen, 1);
