@@ -925,6 +925,7 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         brew update
+        brew upgrade
         brew install ninja ${{ matrix.packages }}
         brew trust --formula coverallsapp/coveralls/coveralls
       env:
