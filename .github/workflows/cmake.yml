@@ -857,19 +857,27 @@ jobs:
         update: true
         msystem: UCRT64
         install: >-
-          pkg-config
-          make
-          git
           mingw-w64-ucrt-x86_64-toolchain
           mingw-w64-ucrt-x86_64-cmake
           mingw-w64-ucrt-x86_64-gcovr
+          mingw-w64-ucrt-x86_64-git
           mingw-w64-ucrt-x86_64-libxml2
           mingw-w64-ucrt-x86_64-libxslt
+          mingw-w64-ucrt-x86_64-make
+          mingw-w64-ucrt-x86_64-pkgconf
           mingw-w64-ucrt-x86_64-python-colorlog
           mingw-w64-ucrt-x86_64-python-jinja
           mingw-w64-ucrt-x86_64-python-lxml
           mingw-w64-ucrt-x86_64-python-markupsafe
           mingw-w64-ucrt-x86_64-python-pygments
+
+    - name: Install GCC 16.1.0 (UCRT64)
+      if: runner.os == 'Windows' && contains(matrix.name, 'GCC MinGW64')
+      run: |
+        wget -q https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-gcc-16.1.0-5-any.pkg.tar.zst
+        wget -q https://repo.msys2.org/mingw/ucrt64/mingw-w64-ucrt-x86_64-gcc-libs-16.1.0-5-any.pkg.tar.zst
+        pacman -Rdd --noconfirm mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-cc-libs mingw-w64-ucrt-x86_64-libgcc mingw-w64-ucrt-x86_64-libstdc++
+        pacman -Udd --noconfirm mingw-w64-ucrt-x86_64-gcc-16.1.0-5-any.pkg.tar.zst mingw-w64-ucrt-x86_64-gcc-libs-16.1.0-5-any.pkg.tar.zst
 
     - name: Add ubuntu mirrors
       if: runner.os == 'Linux' && !contains(matrix.os, 'z15')
@@ -912,7 +920,7 @@ jobs:
         # strawberryperl installs /c/Strawberry/c/bin/libstdc++-6.dll, which is incompatible with the mingw64 one.
         # zlib-ng does not need perl, so simply remove it.
         choco uninstall --no-progress strawberryperl
-        choco install --no-progress ninja ${{ matrix.packages }}
+        choco upgrade --no-progress ninja ${{ matrix.packages }}
 
     - name: Install Visual Studio toolset v140 (Windows)
       if: contains(matrix.name, 'v140')
